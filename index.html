@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Kedai Dashboard - SahabatKu</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ========================================================= */
+        /* 1. Global & Theme Variables (Modern & Stylish) */
+        /* ========================================================= */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-color: #00CAFF; /* Biru terang */
+            --primary-color-dark: #0099cc;
+            --primary-color-light: #e0f7fa;
+            --primary-rgb: 0, 202, 255;
+            --secondary-color: #ffc107;
+            --text-color: #333;
+            --text-color-dark: #212529;
+            --text-color-light: #6c757d;
+            --bg-light: #f7f9fc;
+            --bg-card: #ffffff;
+            --shadow-soft: 0 4px 15px rgba(0,0,0,0.08);
+            --shadow-hover: 0 8px 25px rgba(var(--primary-rgb), 0.2);
+            --radius-lg: 12px;
+            --radius-sm: 8px;
+            --border-color: #eee;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-light); 
+            color: var(--text-color); 
+            line-height: 1.6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        main { max-width: 800px; margin: 20px auto; padding: 0 15px; }
+        
+        /* ========================================================= */
+        /* 2. Login Page Styling - MODIFIKASI: LEBIH KEREN & MODERN */
+        /* ========================================================= */
+        #loginScreen {
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; width: 100%; position: fixed; top: 0; left: 0; 
+            /* Latar belakang keren */
+            background: linear-gradient(135deg, var(--primary-color-light) 0%, #ffffff 100%); 
+            z-index: 10000;
+        }
+        .login-card {
+            background: var(--bg-card); padding: 40px; border-radius: var(--radius-lg); 
+            /* Shadow keren dengan aksen warna primer */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 0 0 8px rgba(var(--primary-rgb), 0.1); 
+            max-width: 400px; width: 90%; text-align: center;
+            animation: fadeInScale 0.6s ease-out; /* Animasi masuk */
+        }
+        .login-card h2 {
+            color: var(--primary-color-dark); margin-bottom: 30px; font-weight: 700;
+            font-size: 28px;
+        }
+        .login-card input {
+            margin-bottom: 20px; padding: 14px; border: 1px solid #ddd; border-radius: 8px; 
+            width: 100%; font-size: 16px;
+            transition: all 0.3s;
+        }
+        .login-card input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+        }
+        .login-card button {
+            width: 100%; padding: 14px; background-color: var(--primary-color); color: white;
+            border: none; border-radius: 8px; font-size: 18px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
+        }
+        .login-card button:hover { 
+            background-color: var(--primary-color-dark); 
+            box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.6);
+        }
+        .login-card button:active { transform: scale(0.98); }
+        .error-message { color: #dc3545; margin-top: 15px; font-size: 15px; }
+        
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        /* ========================================================= */
+        /* 3. Layout & Cards (Card / Kotak) */
+        /* ========================================================= */
+        .dashboard-content { display: none; }
+        .card-section {
+            background: var(--bg-card); padding: 20px; border-radius: var(--radius-lg); 
+            box-shadow: var(--shadow-soft); margin-bottom: 20px; 
+            transition: all 0.3s ease;
+        }
+        .card-section h2 {
+            font-size: 18px; font-weight: 700; color: var(--text-color-dark); margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-section h2 button { margin-left: 10px; }
+        
+        /* ========================================================= */
+        /* 3.1. Profil Kedai Card - MODIFIKASI: Teks Tengah, Ukuran Besar, Status Modern */
+        /* ========================================================= */
+        .profile-content { 
+            display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; 
+        }
+        .profile-image-container { 
+            width: 180px; 
+            height: auto;
+            aspect-ratio: 16 / 9; /* Rasio persegi panjang */
+            border-radius: var(--radius-sm); 
+            overflow: hidden; 
+            box-shadow: 0 0 0 3px var(--primary-color-light), var(--shadow-soft);
+            flex-shrink: 0;
+        }
+        .profile-image-container img { 
+            width: 100%; height: 100%; object-fit: cover; 
+            aspect-ratio: 16/9;
+        }
+        
+        /* Teks di tengah dan ukuran font diperbesar */
+        .profile-details { 
+            flex-grow: 1; 
+            text-align: center; /* Perubahan: Teks rata tengah */
+        }
+        .profile-details h3 { 
+            font-size: 28px; /* Ukuran nama kedai agak dibesarkan */
+            margin-bottom: 5px; font-weight: 700; 
+        }
+        .profile-details p { 
+            font-size: 16px; /* Perubahan: Ukuran alamat dan status diperbesar */
+            color: var(--text-color-dark); /* Warna teks utama */
+            margin-bottom: 8px; /* Jarak antar baris */
+            font-weight: 500;
+        }
+        
+        /* Tampilan Status Modern */
+        .status-indicator { 
+            display: inline-flex; /* Agar ikon dan teks bisa diatur */
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px; /* Padding lebih besar */
+            border-radius: 50px; 
+            font-weight: 700;
+            font-size: 14px; 
+            margin-top: 10px; 
+            animation: pulse 2s infinite; 
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+            transition: all 0.3s;
+        }
+        .status-indicator i {
+            font-size: 16px; /* Ukuran ikon status */
+        }
+        
+        .status-open { 
+            background-color: #4CAF50; color: white; 
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); 
+        }
+        
+        .status-closed { 
+            background-color: #ff4d4f; color: white; 
+            animation: none; /* Hilangkan animasi pulse jika tutup */
+            box-shadow: 0 4px 15px rgba(255, 77, 79, 0.4); 
+        }
+        
+        /* Animasi Pulse Disesuaikan */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        
+        /* ========================================================= */
+        /* 3.2. Galeri Foto & Daftar Menu Grids - (Sama seperti sebelumnya) */
+        /* ========================================================= */
+        .menu-grid, .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+            gap: 15px;
+            padding-top: 10px;
+        }
+        .grid-item {
+            background: var(--bg-card); 
+            border-radius: var(--radius-sm); 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+            overflow: hidden; 
+            transition: transform 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .grid-item:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .grid-item img {
+            width: 100%; display: block; object-fit: cover;
+        }
+        .menu-item img { 
+            aspect-ratio: 1/1; 
+        }
+        .gallery-item img {
+            aspect-ratio: 4/3; 
+        }
+        .item-content { 
+            padding: 10px; font-size: 12px; 
+            display: flex; flex-direction: column; justify-content: space-between;
+            flex-grow: 1; 
+        }
+        .item-content h4 { 
+            font-size: 14px; font-weight: 600; margin-bottom: 5px; 
+            color: var(--text-color-dark); 
+        }
+        .item-content p { color: var(--text-color-light); margin-bottom: 5px; }
+        .item-content .item-price { font-weight: 700; color: #dc3545; font-size: 13px; }
+        
+        /* Batasan Kategori Menu (Agar Rapi) */
+        .item-content .item-category { 
+            display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; 
+            max-height: 32px; 
+            overflow: hidden; 
+        }
+        .item-content .category-tag {
+            font-size: 9px; padding: 2px 6px; border-radius: 4px; 
+            background: var(--primary-color-light); color: var(--primary-color-dark); 
+            font-weight: 500;
+        }
+        .item-actions {
+            display: flex; gap: 5px; margin-top: 10px; border-top: 1px solid var(--border-color);
+            padding-top: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px; 
+            white-space: nowrap;
+        }
+        .item-actions button {
+            flex-shrink: 0; 
+        }
+        
+        /* Container Galeri agar bisa di-scroll horizontal */
+        #ownerGalleryList {
+            overflow-x: auto;
+            padding-bottom: 10px; 
+        }
+        .gallery-grid {
+            display: flex; 
+            gap: 15px; 
+            width: max-content; 
+            padding-top: 10px;
+        }
+        .gallery-item {
+            width: 200px; 
+            flex-shrink: 0;
+        }
+        
+        /* Status Sembunyi/Terbit di Galeri - (Tidak Berubah) */
+        .gallery-status-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5); color: white;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 16px; font-weight: 600;
+            pointer-events: none; 
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .grid-item.hidden-gallery .gallery-status-overlay {
+            opacity: 1;
+        }
+        
+        /* ========================================================= */
+        /* 4. Utilities & Buttons */
+        /* ========================================================= */
+        input:not([type="checkbox"]), textarea, select { 
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; 
+            font-size: 14px; transition: all 0.3s; background-color: var(--bg-light); 
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; }
+        
+        .btn {
+            padding: 8px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; 
+            transition: all 0.3s; border: none; font-weight: 600; color: white; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            white-space: nowrap; 
+        }
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-secondary { background-color: var(--secondary-color); }
+        .btn-danger { background-color: #dc3545; }
+        .btn-warning { background-color: #ff9800; }
+        .btn-icon { padding: 8px; }
+        .btn-sm { padding: 6px 10px; font-size: 11px; }
+        
+        /* Tombol Logout Lebih Kecil dan Keren */
+        #logoutButton {
+            padding: 6px 10px; 
+            font-size: 11px;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+            transition: all 0.2s ease-in-out;
+        }
+        #logoutButton:hover { 
+            background-color: #c82333; 
+            transform: scale(1.1); 
+        }
+        #headerGreeting {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color-dark);
+            margin-right: 15px; 
+        }
+        
+        /* Pencarian Menu - (Tidak Berubah) */
+        #menuSearchContainer {
+            margin-bottom: 15px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            background: var(--bg-card);
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        /* Notifikasi Kecil & Cepat */
+        .notification-container {
+            position: fixed; top: 20px; right: 20px; z-index: 2000;
+        }
+        .notification {
+            padding: 8px 15px; 
+            margin-bottom: 8px; 
+            border-radius: 4px; 
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            font-size: 13px; 
+            animation: slideIn 0.3s ease-out, fadeOut 0.3s 1.2s forwards; 
+        }
+        .notification.success { background-color: #4CAF50; }
+        .notification.error { background-color: #dc3545; }
+        .notification.warning { background-color: #ff9800; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(100%); }
+        }
+        
+        /* ========================================================= */
+        /* 5. Modals & Cropping - (Sama seperti sebelumnya) */
+        /* ========================================================= */
+        .modal { 
+            display: none; justify-content: center; align-items: center; 
+            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
+            overflow: auto; background-color: rgba(0,0,0,0.6); 
+        }
+        .modal-content { 
+            background-color: #fefefe; padding: 20px; border-radius: var(--radius-lg); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-width: 90%; min-width: 350px; 
+            max-height: 90%; overflow-y: auto; position: relative;
+        }
+        .close-btn { 
+            color: #aaa; font-size: 24px; font-weight: bold; 
+            position: absolute; top: 5px; right: 15px; cursor: pointer;
+        }
+        /* Preview Gambar Di Modal Lebih Kecil */
+        .image-preview-container { 
+            width: 100%; height: auto; margin: 10px 0; border: 1px solid #ddd; 
+            border-radius: var(--radius-sm); overflow: hidden;
+            display: flex; justify-content: center; align-items: center; 
+            background: var(--bg-light);
+            max-height: 180px; 
+        }
+        .image-preview-container img { 
+            max-width: 100%; height: auto; display: none; 
+        }
+        .category-options {
+            display: flex; flex-wrap: wrap; gap: 8px; max-height: 150px; overflow-y: auto;
+            padding: 10px; border: 1px solid #ddd; border-radius: var(--radius-sm);
+            background: var(--bg-light);
+        }
+        .category-options label {
+            display: inline-block; cursor: pointer;
+            padding: 6px 12px; border-radius: 20px; 
+            background-color: #f0f0f0; color: var(--text-color-dark);
+            transition: all 0.2s;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .category-options input[type="checkbox"] {
+            display: none;
+        }
+        .category-options input[type="checkbox"]:checked + label {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 5px rgba(var(--primary-rgb), 0.3);
+            transform: scale(1.05);
+        }
+        .category-options label:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* Cropping Modal - (Tidak Berubah) */
+        #croppingModal .modal-content { max-width: 95%; min-width: 300px; }
+        .img-container { max-height: 400px; overflow: hidden; }
+        /* ========================================================= */
+        /* 4.1. Stylish Toggle Switch */
+        /* ========================================================= */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        /* Base Switch */
+        .styled-toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 80px; /* Lebar switch */
+            height: 34px; /* Tinggi switch */
+        }
+        
+        .styled-toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ff4d4f; /* Merah = Tutup */
+            transition: 0.4s;
+            border-radius: 34px;
+            box-shadow: 0 4px 10px rgba(255, 77, 79, 0.3);
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "TUTUP"; /* Teks awal */
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+            /* Styling teks di dalam knob */
+            text-align: center;
+            line-height: 26px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #ff4d4f;
+        }
+        
+        input:checked + .slider {
+            background-color: #4CAF50; /* Hijau = Buka */
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
+        }
+        
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(46px); /* Geser ke kanan (80px - 34px) */
+            content: "BUKA"; /* Teks setelah digeser */
+            color: #4CAF50;
+        }        
+        /* ========================================================= */
+        /* 6. Mobile Responsiveness - (Disesuaikan) */
+        /* ========================================================= */
+        @media (max-width: 768px) {
+             main { margin: 10px auto; padding: 0 10px; }
+            .card-section { padding: 15px; }
+            .card-section h2 { font-size: 16px; }
+            
+            /* Profil Mobile - Dibuat rata tengah di mobile */
+            .profile-content { 
+                flex-direction: column; 
+                align-items: center; /* Tengah semua item di mobile */
+                text-align: center; 
+            }
+            .profile-image-container { 
+                margin-bottom: 10px; 
+                width: 100%; 
+                aspect-ratio: 16/9; 
+                border-radius: var(--radius-sm);
+            }
+            .profile-details h3 { font-size: 24px; }
+            .profile-details p { font-size: 14px; } /* Ukuran alamat/status di mobile */
+        
+            /* Header Mobile */
+            header {
+                justify-content: space-between !important;
+                align-items: center;
+                padding: 5px 0;
+            }
+            #headerGreeting {
+                font-size: 13px;
+                margin-right: 0;
+                text-align: left;
+            }
+            
+            /* Grid Menu Mobile */
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 10px;
+            }
+        
+            /* Galeri Mobile - Scroll Horizontal */
+            .gallery-grid {
+                gap: 10px;
+            }
+            .gallery-item {
+                width: 160px; 
+            }
+        
+            /* Item Konten Mobile */
+            .item-content h4 { font-size: 13px; }
+            .item-content p, .item-content .item-price { font-size: 11px; }
+            .item-actions { padding-top: 5px; gap: 3px; }
+            .item-actions button { font-size: 9px; padding: 4px 6px; }
+            
+            .modal-content { min-width: 95%; }
+            
+            /* Notifikasi Mobile */
+            .notification-container {
+                top: 10px; right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen">
+        <div class="login-card">
+            <h2><i class="fas fa-user-shield"></i> Owner Kedai Login</h2>
+            <form id="loginForm">
+                <input type="text" id="loginUsername" placeholder="Username Kedai" required>
+                <input type="password" id="loginPassword" placeholder="Password Kedai" required>
+                <button type="submit" id="loginButton"><i class="fas fa-sign-in-alt"></i> Masuk</button>
+                <p id="loginError" class="error-message" style="display: none;">Username atau password salah!</p>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboardContent" class="dashboard-content">
+        <main>
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div id="headerGreeting"></div> 
+                <button class="btn btn-danger" id="logoutButton" onclick="logout()" style="box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4); transform: scale(1); transition: all 0.2s;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </header>
+            <div class="card-section" id="profileSection">
+                <h2>
+                    <i class="fas fa-store"></i> Profil Kedai
+                    <button class="btn btn-primary btn-sm" onclick="openProfileEditModal()"><i class="fas fa-edit"></i> Edit Profil</button>
+                </h2>
+                <div class="profile-content">
+                    <div class="profile-image-container">
+                        <img id="profileKedaiImage" src="https://via.placeholder.com/400x225/00CAFF/ffffff?text=FOTO+KEDAI+(16:9)" alt="Foto Kedai">
+                    </div>
+                    <div class="profile-details">
+                        <h3 id="profileKedaiName">Nama Kedai Anda</h3>
+                        <p id="profileKedaiAddress"><i class="fas fa-map-marker-alt"></i> Alamat Kedai</p>
+                        <p>Status: <span id="profileKedaiStatus" class="status-indicator">Memuat...</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-section" id="gallerySection">
+                <h2>
+                    <i class="fas fa-images"></i> Galeri Foto
+                    <button class="btn btn-primary btn-sm" onclick="openGalleryModal(true)"><i class="fas fa-plus"></i> Tambah Galeri Baru</button>
+                </h2>
+                <div class="gallery-grid" id="ownerGalleryList">
+                    <p style="text-align: center; color: #999; grid-column: 1 / -1;">Memuat data galeri...</p>
+                </div>
+            </div>
+
+            <div class="card-section" id="menuSection">
+                <h2>
+                    <i class="fas fa-utensils"></i> Daftar Menu
+                    <button class="btn btn-primary btn-sm" onclick="openMenuModal(true)"><i class="fas fa-plus"></i> Tambah Menu Baru</button>
+                </h2>
+                <div id="menuSearchContainer">
+                    <input type="text" id="menuSearchInput" placeholder="Cari nama menu..." oninput="filterOwnerMenus()">
+                </div>
+                <div class="menu-grid" id="ownerMenuList">
+                    <p style="text-align: center; color: #999; grid-column: 1 / -1;">Memuat data menu...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="profileEditModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('profileEditModal')">&times;</span>
+            <h3 class="primary-color" style="margin-bottom: 20px;"><i class="fas fa-edit"></i> Edit Profil Kedai</h3>
+            <form id="profileEditForm">
+                <div class="form-group"><label>Nama Kedai:</label><input type="text" id="editKedaiName" required></div>
+                <div class="form-group"><label>Alamat Kedai:</label><input type="text" id="editKedaiAddress" required></div>
+                <div class="form-group"><label>Username Kedai:</label><input type="text" id="editKedaiUsername" required></div>
+                <div class="form-group"><label>Password Kedai:</label><input type="password" id="editKedaiPassword" placeholder="Biarkan kosong jika tidak ingin diubah"></div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px; color: var(--primary-color);">Status & Jam Operasional</h4>
+                <div class="form-group">
+                    <label>Mode Status:</label>
+                    <select id="editStatusModeSelect" onchange="toggleManualControls(this.value)">
+                        <option value="auto">Otomatis (Berdasarkan Jam)</option>
+                        <option value="manual">Manual</option>
+                    </select>
+                </div>
+                <div id="autoControls">
+                    <div class="form-group"><label>Jam Buka:</label><input type="time" id="editOpenTime"></div>
+                    <div class="form-group"><label>Jam Tutup:</label><input type="time" id="editCloseTime"></div>
+                </div>
+                <div id="manualControls" style="display: none;">
+                    <div class="form-group">
+                        <label>Status Manual:</label>
+                        <div class="toggle-container">
+                            <label class="styled-toggle-switch">
+                                <input type="checkbox" id="editManualStatusToggle" onchange="document.getElementById('editManualStatusActualValue').value = this.checked ? 'open' : 'closed'; updateManualStatusLabel(this.checked);"> 
+                                <span class="slider"></span>
+                            </label>
+                            <span id="manualStatusLabel" style="font-weight: 600; font-size: 16px;">
+                                </span>
+                        </div>
+                        <input type="hidden" id="editManualStatusActualValue" value="open">
+                    </div>
+                </div>
+
+                <h4 style="margin-top: 20px; margin-bottom: 10px; color: var(--primary-color);">Foto Kedai (1:1 Ratio, Wajib Crop)</h4>
+                <div class="image-preview-container" style="height: 150px;">
+                    <img id="editKedaiImagePreview" src="" alt="Preview Foto Kedai" style="display: block; max-height: 100%; aspect-ratio: 1/1;">
+                </div>
+                <input type="file" id="editKedaiImageFile" accept="image/*" onchange="prepareCrop(event, 'restaurant')" style="margin-bottom: 15px;">
+                
+                <button type="button" class="btn btn-primary" onclick="saveOwnerProfile()" style="width: 100%;"><i class="fas fa-save"></i> Simpan Profil</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="menuModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('menuModal')">&times;</span>
+            <h3 id="menuModalTitle" class="primary-color" style="margin-bottom: 20px;"><i class="fas fa-utensils"></i> Kelola Menu</h3>
+            <form id="menuFormData">
+                <input type="hidden" id="menuId">
+                <div class="form-group"><label>Nama Menu:</label><input type="text" id="menuName" required></div>
+                <div class="form-group">
+                    <label>Harga (contoh: 10.000):</label>
+                    <input type="text" id="menuPriceDisplay" required placeholder="Cth: 10.000">
+                    <input type="hidden" id="menuPrice">
+                </div>
+                
+                <div class="form-group">
+                    <label>Kategori Menu (Pilih satu atau lebih):</label>
+                    <div id="menuCategoryOptions" class="category-options">
+                        </div>
+                </div>
+
+                <h4 style="margin-top: 20px; margin-bottom: 10px; color: var(--primary-color);">Foto Menu (1:1 Ratio, Wajib Crop)</h4>
+                <div class="image-preview-container" style="height: 150px;">
+                    <img id="menuImagePreview" src="" alt="Preview Foto Menu" style="display: block; max-height: 100%; aspect-ratio: 1/1;">
+                </div>
+                <input type="file" id="menuImageFile" accept="image/*" onchange="prepareCrop(event, 'menu')" style="margin-bottom: 15px;">
+
+                <button type="button" class="btn btn-primary" onclick="saveMenu()" style="width: 100%;"><i class="fas fa-save"></i> Simpan Menu</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="galleryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('galleryModal')">&times;</span>
+            <h3 id="galleryModalTitle" class="primary-color" style="margin-bottom: 20px;"><i class="fas fa-images"></i> Kelola Galeri</h3>
+            <form id="galleryFormData">
+                <input type="hidden" id="galleryId">
+                <div class="form-group"><label>Nama Galeri (Opsional):</label><input type="text" id="galleryName"></div>
+                <div class="form-group"><label>Keterangan Galeri (Opsional):</label><textarea id="galleryDescription" rows="3" placeholder="Deskripsi singkat galeri/foto"></textarea></div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px; color: var(--primary-color);">Foto Galeri (Full Size, Tidak Dicrop)</h4>
+                <div class="image-preview-container" style="height: 200px;">
+                    <img id="galleryImagePreview" src="" alt="Preview Foto Galeri" style="display: block; max-height: 100%; aspect-ratio: auto;">
+                </div>
+                <input type="file" id="galleryImageFile" accept="image/*" style="margin-bottom: 15px;">
+
+                <button type="button" class="btn btn-primary" onclick="saveGallery()" style="width: 100%;"><i class="fas fa-save"></i> Simpan Galeri</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="croppingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('croppingModal')">&times;</span>
+            <h3 class="primary-color" style="margin-bottom: 20px;"><i class="fas fa-crop-alt"></i> Pangkas Gambar (1:1)</h3>
+            <div class="img-container">
+                <img id="imageToCrop" src="" alt="Gambar untuk dipangkas" style="max-width: 100%;">
+            </div>
+            <button class="btn btn-primary" onclick="cropAndSave()" style="width: 100%; margin-top: 15px;"><i class="fas fa-check"></i> Selesai Pangkas</button>
+        </div>
+    </div>
+    
+    <div id="notification-container" class="notification-container"></div>
+
+    <script>
+        // =========================================================
+        // JAVASCRIPT LOGIC
+        // =========================================================
+
+        // --- KONFIGURASI PENTING ---
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyApP7-PPtMf3c4yn_Yzm-xYvkKPf9K1N4Y",
+          authDomain: "daftarkedaikemitraan.firebaseapp.com",
+          databaseURL: "https://daftarkedaikemitraan-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "daftarkedaikemitraan",
+          storageBucket: "daftarkedaikemitraan.firebasestorage.app",
+          messagingSenderId: "543218937987",
+          appId: "1:543218937987:web:a40e427d6befb6c866ebb6",
+          measurementId: "G-C66WQ6FHX1"
+        };
+        
+        // KONFIGURASI CLOUDINARY SESUAI PERMINTAAN USER
+        const CLOUDINARY_CLOUD_NAME = 'sahabatkukedai'; 
+        const CLOUDINARY_UPLOAD_PRESET = 'sahabatkukedai';
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+        // Default Images
+        const DEFAULT_RESTAURANT_IMAGE = "https://via.placeholder.com/400x400/00CAFF/ffffff?text=FOTO+KEDAI+(1:1)";
+        const DEFAULT_MENU_IMAGE = "https://via.placeholder.com/400x400/FF5733/ffffff?text=FOTO+MENU+(1:1)";
+        const DEFAULT_GALLERY_IMAGE = "https://via.placeholder.com/600x400/33FF57/ffffff?text=FOTO+GALERI";
+
+        // Firebase Initialization
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const RESTAURANT_REF = db.ref('restaurants');
+        const MENU_REF = db.ref('menus');
+        const GALLERY_REF = db.ref('galleries');
+
+        // Global State
+        let LOGGED_IN_RESTAURANT_ID = localStorage.getItem('ownerRestaurantId') || null;
+        let LOGGED_IN_RESTAURANT_DATA = null;
+        let ALL_MENUS = {};
+        let ALL_GALLERIES = {};
+        
+        // Cropping State
+        let currentCropper = null;
+        let imageToCropType = ''; // 'restaurant' or 'menu'
+        let fileInputIdForCrop = '';
+
+        // Kategori Master (Sesuai Permintaan)
+        const MENU_CATEGORIES = [
+            'Jajanan', 'Minuman Dingin', 'Makanan Manis', 'Cepat Saji', 'Aneka Nasi', 'Ayam & Bebek', 
+            'Kopi', 'Non-Kopi', 'Bakmi', 'Seafood', 'Roti', 'Sate', 'Bakso & Soto', 'Martabak', 
+            'Gorengan','Cemilan', 'Mie', 'Jus', 'Es Teh','Lauk','Ikan','Nasi Goreng','Seblak',
+            'Sarapan Pagi','Ayam Geprek','Minuman Kekinian','Chiken'
+        ];
+        
+        // --- UTILITY FUNCTIONS ---
+        // Fungsi untuk mengupdate teks status manual
+        const updateManualStatusLabel = (isOpen) => {
+            document.getElementById('manualStatusLabel').textContent = isOpen ? 'Kedai BUKA' : 'Kedai TUTUP';
+        };
+        const notify = (message, type = 'success') => {
+            const container = document.getElementById('notification-container');
+            const note = document.createElement('div');
+            note.className = `notification ${type}`;
+            note.textContent = message;
+            container.appendChild(note);
+        
+            setTimeout(() => {
+                note.remove();
+            }, 1500); // MODIFIKASI: Durasi notifikasi dipercepat menjadi 1.5 detik
+        };
+        const closeModal = (modalId) => {
+            document.getElementById(modalId).style.display = 'none';
+            if (modalId === 'croppingModal' && currentCropper) {
+                currentCropper.destroy();
+                currentCropper = null;
+            }
+        };
+
+        const openModal = (modalId, title) => {
+            document.getElementById(modalId).style.display = 'flex';
+            const titleEl = document.getElementById(modalId + 'Title');
+            if(titleEl) titleEl.textContent = title;
+        };
+
+        const formatRupiah = (angka, prefix = 'Rp') => {
+            let number_string = String(angka).replace(/[^,\d]/g, '').toString(),
+                split = number_string.split(','),
+                sisa = split[0].length % 3,
+                rupiah = split[0].substr(0, sisa),
+                ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+            return prefix + (rupiah ? rupiah : '0');
+        };
+        
+        const parseRupiah = (rupiah) => {
+            return parseInt(String(rupiah).replace(/[^0-9]/g, '')) || 0;
+        };
+
+        const getCurrentWibTimeComponents = () => {
+            // Menggunakan waktu lokal device
+            const now = new Date();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            const second = now.getSeconds();
+            return { hour, minute, second };
+        };
+
+        const checkKedaiStatus = (r) => {
+            if (!r) return { status: 'Tutup', is_open: false, statusClass: 'status-closed' };
+
+            // 1. Cek mode manual
+            if (r.statusMode === 'manual') {
+                const isOpen = r.manualStatus === 'open';
+                return { 
+                    status: isOpen ? 'Buka (Manual)' : 'Tutup (Manual)', 
+                    is_open: isOpen, 
+                    statusClass: isOpen ? 'status-open' : 'status-closed' 
+                };
+            }
+
+            // 2. Mode otomatis (default)
+            const { hour, minute } = getCurrentWibTimeComponents();
+            const nowMinutes = hour * 60 + minute;
+            const openMinutes = parseTime(r.openTime || '08:00');
+            const closeMinutes = parseTime(r.closeTime || '22:00');
+            let isOpen = false;
+
+            if (openMinutes <= closeMinutes) {
+                isOpen = nowMinutes >= openMinutes && nowMinutes < closeMinutes;
+            } else {
+                isOpen = nowMinutes >= openMinutes || nowMinutes < closeMinutes;
+            }
+
+            const status = isOpen ? 'Buka' : 'Tutup';
+            return { 
+                status: status, 
+                is_open: isOpen, 
+                statusClass: isOpen ? 'status-open' : 'status-closed' 
+            };
+        };
+
+        const parseTime = (time) => { // 'HH:MM' to minutes
+            if (!time) return 0;
+            const [h, m] = time.split(':').map(Number);
+            return h * 60 + m;
+        };
+        
+        const toggleManualControls = (mode) => {
+            document.getElementById('autoControls').style.display = mode === 'auto' ? 'block' : 'none';
+            document.getElementById('manualControls').style.display = mode === 'manual' ? 'block' : 'none';
+        };
+
+        // --- IMAGE UPLOAD & CROPPING LOGIC ---
+
+        const uploadImageToCloudinary = async (file) => {
+            if (!file) { return null; }
+
+            notify('Mengunggah gambar...', 'warning');
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(CLOUDINARY_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await response.json();
+                if (data.secure_url) {
+                    notify('Gambar berhasil diunggah!', 'success');
+                    return data.secure_url;
+                } else {
+                    notify(`Gagal mengunggah gambar: ${data.error.message}`, 'error');
+                    return null;
+                }
+            } catch (error) {
+                notify(`Error Cloudinary: ${error.message}`, 'error');
+                return null;
+            }
+        };
+
+        const prepareCrop = (event, type) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            fileInputIdForCrop = event.target.id;
+            imageToCropType = type; 
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                openModal('croppingModal', 'Pangkas Gambar');
+                const image = document.getElementById('imageToCrop');
+                image.src = e.target.result;
+                
+                // Hapus cropper lama jika ada
+                if (currentCropper) {
+                    currentCropper.destroy();
+                }
+
+                // Inisialisasi Cropper baru
+                currentCropper = new Cropper(image, {
+                    aspectRatio: 1, // Wajib 1:1
+                    viewMode: 1,
+                    background: false,
+                    responsive: true,
+                    // minCropBoxWidth: 100,
+                    // minCropBoxHeight: 100,
+                });
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.cropAndSave = () => {
+            if (!currentCropper) return;
+            
+            const fileInput = document.getElementById(fileInputIdForCrop);
+            const previewId = fileInputIdForCrop.replace('File', 'Preview');
+            const preview = document.getElementById(previewId);
+
+            currentCropper.getCroppedCanvas({
+                width: 400,
+                height: 400,
+            }).toBlob((blob) => {
+                const croppedFile = new File([blob], `cropped_${imageToCropType}_${new Date().getTime()}.png`, { type: 'image/png' });
+                fileInput.croppedFile = croppedFile; // Simpan file yang sudah dicrop di elemen input
+                
+                preview.src = URL.createObjectURL(croppedFile);
+                preview.style.display = 'block';
+
+                closeModal('croppingModal');
+                notify('Gambar berhasil dipangkas dan siap diunggah!', 'success');
+            }, 'image/png');
+        };
+
+        // --- LOGIN LOGIC ---
+
+        const checkLoginStatus = () => {
+            if (LOGGED_IN_RESTAURANT_ID) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+                fetchAllOwnerData();
+            }
+        };
+
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const loginButton = document.getElementById('loginButton');
+            const loginError = document.getElementById('loginError');
+
+            loginButton.disabled = true;
+            loginError.style.display = 'none';
+
+            try {
+                const snapshot = await RESTAURANT_REF.orderByChild('username').equalTo(username).once('value');
+                const restaurants = snapshot.val();
+
+                if (restaurants) {
+                    const rId = Object.keys(restaurants)[0];
+                    const r = restaurants[rId];
+                    
+                    if (r.password === password) { // Perbandingan password sederhana
+                        LOGGED_IN_RESTAURANT_ID = rId;
+                        localStorage.setItem('ownerRestaurantId', rId);
+                        notify(`Berhasil login sebagai ${r.name}!`, 'success');
+                        checkLoginStatus(); // Masuk ke dashboard
+                    } else {
+                        loginError.textContent = 'Password salah.';
+                        loginError.style.display = 'block';
+                    }
+                } else {
+                    loginError.textContent = 'Username tidak ditemukan.';
+                    loginError.style.display = 'block';
+                }
+            } catch (error) {
+                notify(`Error Firebase Login: ${error.message}`, 'error');
+            } finally {
+                loginButton.disabled = false;
+            }
+        };
+
+        // --- DATA FETCHING & RENDERING (OWNER) ---
+
+        const fetchAllOwnerData = () => {
+            if (!LOGGED_IN_RESTAURANT_ID) return;
+
+            // Fetch Kedai Profile
+            RESTAURANT_REF.child(LOGGED_IN_RESTAURANT_ID).on('value', (snapshot) => {
+                LOGGED_IN_RESTAURANT_DATA = snapshot.val();
+                if (LOGGED_IN_RESTAURANT_DATA) {
+                    renderOwnerProfile();
+                    renderMenuCategoryOptions(); // Pastikan kategori terrender saat data kedai dimuat
+                } else {
+                    notify('Data kedai tidak ditemukan!', 'error');
+                }
+            }, (error) => {
+                notify(`Firebase Error (Kedai Profile): ${error.message}`, 'error');
+            });
+
+            // Fetch Menus
+            MENU_REF.orderByChild('restaurantId').equalTo(LOGGED_IN_RESTAURANT_ID).on('value', (snapshot) => {
+                ALL_MENUS = {};
+                snapshot.forEach(childSnapshot => {
+                    ALL_MENUS[childSnapshot.key] = childSnapshot.val();
+                });
+                filterOwnerMenus(); // Initial render and filtering
+            }, (error) => {
+                notify(`Firebase Error (Menus): ${error.message}`, 'error');
+            });
+
+            // Fetch Galleries
+            GALLERY_REF.orderByChild('restaurantId').equalTo(LOGGED_IN_RESTAURANT_ID).on('value', (snapshot) => {
+                ALL_GALLERIES = {};
+                snapshot.forEach(childSnapshot => {
+                    ALL_GALLERIES[childSnapshot.key] = childSnapshot.val();
+                });
+                renderOwnerGalleries();
+            }, (error) => {
+                notify(`Firebase Error (Galleries): ${error.message}`, 'error');
+            });
+        };
+
+        // --- SECTION 1: PROFIL KEDAI ---
+
+        const renderOwnerProfile = () => {
+            const r = LOGGED_IN_RESTAURANT_DATA;
+            if (!r) return;
+
+            const { status, statusClass } = checkKedaiStatus(r);
+            document.getElementById('headerGreeting').textContent = `Halo, ${r.name || 'Owner'}!`;
+
+            document.getElementById('profileKedaiImage').src = r.image || DEFAULT_RESTAURANT_IMAGE;
+            document.getElementById('profileKedaiName').textContent = r.name || 'Nama Kedai Tidak Ada';
+            document.getElementById('profileKedaiAddress').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${r.address || 'Alamat Kedai Tidak Ada'}`;
+            let statusIcon = statusClass === 'status-open' ? '<i class="fas fa-store-alt"></i>' : '<i class="fas fa-door-closed"></i>';
+            document.getElementById('profileKedaiStatus').textContent = status;
+            document.getElementById('profileKedaiStatus').className = `status-indicator ${statusClass}`;
+        };
+
+        window.openProfileEditModal = () => {
+            const r = LOGGED_IN_RESTAURANT_DATA;
+            if (!r) { notify('Data kedai belum termuat.', 'error'); return; }
+
+            document.getElementById('editKedaiName').value = r.name || '';
+            document.getElementById('editKedaiAddress').value = r.address || '';
+            document.getElementById('editKedaiUsername').value = r.username || '';
+            document.getElementById('editKedaiPassword').value = ''; // Selalu kosongkan
+            document.getElementById('editKedaiImageFile').value = '';
+            delete document.getElementById('editKedaiImageFile').croppedFile;
+            
+            document.getElementById('editKedaiImagePreview').src = r.image || DEFAULT_RESTAURANT_IMAGE;
+            document.getElementById('editKedaiImagePreview').style.display = 'block';
+
+            // Status & Jam
+            const statusMode = r.statusMode || 'auto';
+            document.getElementById('editStatusModeSelect').value = statusMode;
+            toggleManualControls(statusMode);
+            
+            document.getElementById('editOpenTime').value = r.openTime || '08:00';
+            document.getElementById('editCloseTime').value = r.closeTime || '22:00';
+            
+            const manualStatus = r.manualStatus || 'open';
+            const toggle = document.getElementById('editManualStatusToggle');
+            toggle.checked = manualStatus === 'open';
+            document.getElementById('editManualStatusActualValue').value = manualStatus;
+            updateManualStatusLabel(toggle.checked); // Panggil fungsi baru untuk inisialisasi label
+        toggle.onchange = function() {
+            const isChecked = this.checked;
+            document.getElementById('editManualStatusActualValue').value = isChecked ? 'open' : 'closed';
+            updateManualStatusLabel(isChecked); 
+        };
+            openModal('profileEditModal', 'Edit Profil Kedai');
+        };
+
+        window.saveOwnerProfile = async () => {
+            const r = LOGGED_IN_RESTAURANT_DATA;
+            if (!r) return;
+
+            const name = document.getElementById('editKedaiName').value;
+            const address = document.getElementById('editKedaiAddress').value;
+            const username = document.getElementById('editKedaiUsername').value;
+            const password = document.getElementById('editKedaiPassword').value;
+            const openTime = document.getElementById('editOpenTime').value;
+            const closeTime = document.getElementById('editCloseTime').value;
+            const statusMode = document.getElementById('editStatusModeSelect').value;
+            const manualStatus = document.getElementById('editManualStatusActualValue').value;
+            const imageFileInput = document.getElementById('editKedaiImageFile');
+
+            if (!name || !address || !username) {
+                notify('Nama, Alamat, dan Username wajib diisi!', 'error');
+                return;
+            }
+
+            let imageUrl = r.image;
+            if (imageFileInput.croppedFile) {
+                imageUrl = await uploadImageToCloudinary(imageFileInput.croppedFile);
+                if (!imageUrl) return; // Gagal upload, batalkan simpan
+            }
+
+            const updateData = {
+                name: name,
+                address: address,
+                username: username,
+                openTime: openTime,
+                closeTime: closeTime,
+                statusMode: statusMode,
+                manualStatus: manualStatus,
+                image: imageUrl,
+                updatedAt: new Date().toISOString(),
+                // Keep other data safe
+                isPublished: r.isPublished !== false,
+                id: LOGGED_IN_RESTAURANT_ID
+            };
+
+            // Hanya update password jika diisi
+            if (password) {
+                updateData.password = password;
+            } else if (!r.password) {
+                notify('Password wajib diisi untuk entri baru.', 'error');
+                return;
+            }
+
+            RESTAURANT_REF.child(LOGGED_IN_RESTAURANT_ID).update(updateData)
+                .then(() => {
+                    notify('Profil Kedai berhasil diperbarui!', 'success');
+                    closeModal('profileEditModal');
+                })
+                .catch(error => notify('Gagal memperbarui profil: ' + error.message, 'error'));
+        };
+
+        // --- SECTION 2: GALERI FOTO ---
+
+        const renderOwnerGalleries = () => {
+            const container = document.getElementById('ownerGalleryList');
+            container.innerHTML = '';
+
+            const galleriesArray = Object.values(ALL_GALLERIES);
+
+            if (galleriesArray.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; grid-column: 1 / -1;">Belum ada foto galeri.</p>';
+                return;
+            }
+
+            galleriesArray.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).forEach(g => {
+                const isPublished = g.isPublished !== false;
+                const hideButtonText = isPublished ? 'Sembunyikan' : 'Tampilkan';
+                const hideButtonClass = isPublished ? 'btn-warning' : 'btn-primary';
+                const item = document.createElement('div');
+                item.className = `grid-item gallery-item ${isPublished ? '' : 'hidden-gallery'}`;
+                item.innerHTML = `
+                    <img src="${g.image || DEFAULT_GALLERY_IMAGE}" alt="${g.name}" style="aspect-ratio: auto;">
+                    <div class="gallery-status-overlay">
+                        <i class="fas fa-eye-slash" style="margin-right: 5px;"></i> Tersembunyi
+                    </div>
+                    <div class="item-content">
+                        <h4>${g.name || 'Galeri Tanpa Nama'}</h4>
+                        <p>${g.description ? g.description.substring(0, 50) + (g.description.length > 50 ? '...' : '') : 'Tidak ada keterangan'}</p>
+                        <div class="item-actions">
+                            <button class="btn btn-sm btn-secondary" onclick="openGalleryModal(false, '${g.id}')"><i class="fas fa-edit"></i> Edit</button>
+                            <button class="btn btn-sm ${hideButtonClass}" onclick="toggleGalleryVisibility('${g.id}', ${isPublished})"><i class="fas ${isPublished ? 'fa-eye-slash' : 'fa-eye'}"></i> ${hideButtonText}</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteGallery('${g.id}', '${g.name}')"><i class="fas fa-trash-alt"></i> Hapus</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        };
+
+        window.openGalleryModal = (isNew, id = null) => {
+            document.getElementById('galleryFormData').reset();
+            document.getElementById('galleryId').value = '';
+            document.getElementById('galleryImageFile').value = '';
+            delete document.getElementById('galleryImageFile').croppedFile;
+            
+            if (isNew) {
+                openModal('galleryModal', 'Tambah Galeri Baru');
+                document.getElementById('galleryImagePreview').src = DEFAULT_GALLERY_IMAGE;
+                document.getElementById('galleryImagePreview').style.display = 'none';
+            } else {
+                const g = ALL_GALLERIES[id];
+                if (!g) return;
+
+                openModal('galleryModal', `Edit Galeri: ${g.name || 'N/A'}`);
+                document.getElementById('galleryId').value = g.id;
+                document.getElementById('galleryName').value = g.name || '';
+                document.getElementById('galleryDescription').value = g.description || '';
+                document.getElementById('galleryImagePreview').src = g.image || DEFAULT_GALLERY_IMAGE;
+                document.getElementById('galleryImagePreview').style.display = 'block';
+            }
+        };
+
+        window.saveGallery = async () => {
+            const id = document.getElementById('galleryId').value || GALLERY_REF.push().key;
+            const name = document.getElementById('galleryName').value;
+            const description = document.getElementById('galleryDescription').value;
+            const imageFileInput = document.getElementById('galleryImageFile');
+
+            let imageUrl = ALL_GALLERIES[id]?.image;
+
+            if (imageFileInput.files.length > 0) {
+                imageUrl = await uploadImageToCloudinary(imageFileInput.files[0]);
+                if (!imageUrl) return;
+            } else if (!imageUrl) {
+                notify('Foto galeri wajib diisi untuk galeri baru!', 'error');
+                return;
+            }
+
+            const galleryData = {
+                id: id,
+                restaurantId: LOGGED_IN_RESTAURANT_ID,
+                name: name,
+                description: description,
+                image: imageUrl,
+                isPublished: true, // Default publish
+                updatedAt: new Date().toISOString()
+            };
+
+            GALLERY_REF.child(id).update(galleryData)
+                .then(() => {
+                    notify(`Galeri berhasil di${document.getElementById('galleryId').value ? 'perbarui' : 'tambahkan'}!`, 'success');
+                    closeModal('galleryModal');
+                })
+                .catch(error => notify('Gagal menyimpan galeri: ' + error.message, 'error'));
+        };
+        
+        window.deleteGallery = (id, name) => {
+            if (confirm(`Yakin ingin menghapus galeri ${name} ini? Tindakan ini tidak dapat dibatalkan!`)) {
+                GALLERY_REF.child(id).remove()
+                    .then(() => {
+                        notify('Galeri berhasil dihapus.', 'danger');
+                    })
+                    .catch(error => notify('Gagal menghapus galeri: ' + error.message, 'error'));
+            }
+        };
+
+        window.toggleGalleryVisibility = (id, currentlyPublished) => {
+             const newStatus = !currentlyPublished;
+             GALLERY_REF.child(id).update({ isPublished: newStatus })
+                .then(() => {
+                    notify(`Galeri berhasil di${newStatus ? 'tampilkan' : 'sembunyikan'}.`, 'warning');
+                })
+                .catch(error => notify('Gagal mengubah visibilitas galeri: ' + error.message, 'error'));
+        };
+
+        // --- SECTION 3: DAFTAR MENU ---
+
+        const renderMenuCategoryOptions = (selectedCategories = []) => {
+            const container = document.getElementById('menuCategoryOptions');
+            container.innerHTML = '';
+            
+            MENU_CATEGORIES.forEach(cat => {
+                const isChecked = selectedCategories.includes(cat);
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.id = `cat-${cat.replace(/\s/g, '-')}`;
+                input.value = cat;
+                input.checked = isChecked;
+
+                const label = document.createElement('label');
+                label.htmlFor = input.id;
+                label.textContent = cat;
+
+                container.appendChild(input);
+                container.appendChild(label);
+            });
+        };
+
+        const getSelectedMenuCategories = () => {
+            const categories = [];
+            document.querySelectorAll('#menuCategoryOptions input[type="checkbox"]:checked').forEach(input => {
+                categories.push(input.value);
+            });
+            return categories;
+        };
+        
+        window.filterOwnerMenus = () => {
+            const container = document.getElementById('ownerMenuList');
+            const searchInput = document.getElementById('menuSearchInput').value.toLowerCase();
+            container.innerHTML = '';
+            
+            const menusArray = Object.values(ALL_MENUS);
+            const filteredMenus = menusArray.filter(m => {
+                return m.name.toLowerCase().includes(searchInput);
+            });
+
+            if (filteredMenus.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: #999; grid-column: 1 / -1;">Menu dengan kata kunci "${searchInput}" tidak ditemukan.</p>`;
+                return;
+            }
+
+            filteredMenus.sort((a, b) => a.name.localeCompare(b.name)).forEach(m => {
+                const limitedCategories = (m.category || []).slice(0, 3);
+                const item = document.createElement('div');
+                item.className = 'grid-item menu-item';
+                const categoriesHTML = (m.category || []).map(cat => `<span class="category-tag">${cat}</span>`).join('');
+                
+                item.innerHTML = `
+                    <img src="${m.image || DEFAULT_MENU_IMAGE}" alt="${m.name}">
+                    <div class="item-content">
+                        <div>
+                            <h4>${m.name}</h4>
+                            <p class="item-price">${formatRupiah(m.price)}</p>
+                            <div class="item-category">${categoriesHTML}</div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-sm btn-secondary" onclick="openMenuModal(false, '${m.id}')"><i class="fas fa-edit"></i> Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteMenu('${m.id}', '${m.name}')"><i class="fas fa-trash-alt"></i> Hapus</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        };
+
+        window.openMenuModal = (isNew, id = null) => {
+            document.getElementById('menuFormData').reset();
+            document.getElementById('menuId').value = '';
+            document.getElementById('menuPrice').value = '';
+            document.getElementById('menuImageFile').value = '';
+            delete document.getElementById('menuImageFile').croppedFile;
+
+            if (isNew) {
+                openModal('menuModal', 'Tambah Menu Baru');
+                document.getElementById('menuImagePreview').src = DEFAULT_MENU_IMAGE;
+                document.getElementById('menuImagePreview').style.display = 'none';
+                renderMenuCategoryOptions([]);
+            } else {
+                const m = ALL_MENUS[id];
+                if (!m) return;
+
+                openModal('menuModal', `Edit Menu: ${m.name}`);
+                document.getElementById('menuId').value = m.id;
+                document.getElementById('menuName').value = m.name;
+                document.getElementById('menuPriceDisplay').value = formatRupiah(m.price);
+                document.getElementById('menuPrice').value = m.price;
+                document.getElementById('menuImagePreview').src = m.image || DEFAULT_MENU_IMAGE;
+                document.getElementById('menuImagePreview').style.display = 'block';
+                renderMenuCategoryOptions(m.category || []);
+            }
+        };
+
+        document.getElementById('menuPriceDisplay').addEventListener('input', (e) => {
+            const rawValue = e.target.value.replace(/[^0-9]/g, ''); 
+            document.getElementById('menuPrice').value = rawValue;
+            e.target.value = formatRupiah(rawValue, '');
+        });
+
+        window.saveMenu = async () => {
+            const id = document.getElementById('menuId').value || MENU_REF.push().key;
+            const name = document.getElementById('menuName').value;
+            const price = document.getElementById('menuPrice').value;
+            const categories = getSelectedMenuCategories();
+            const imageFileInput = document.getElementById('menuImageFile');
+
+            if (!name || !price || categories.length === 0) {
+                notify('Nama, Harga, dan Kategori Menu wajib diisi!', 'error');
+                return;
+            }
+            
+            let imageUrl = ALL_MENUS[id]?.image;
+
+            if (imageFileInput.croppedFile) {
+                imageUrl = await uploadImageToCloudinary(imageFileInput.croppedFile);
+                if (!imageUrl) return;
+            } else if (!imageUrl) {
+                notify('Foto menu wajib diisi untuk menu baru!', 'error');
+                return;
+            }
+
+            const menuData = {
+                id: id,
+                restaurantId: LOGGED_IN_RESTAURANT_ID,
+                name: name,
+                price: parseInt(price),
+                category: categories,
+                image: imageUrl,
+                isPublished: true, // Default publish
+                updatedAt: new Date().toISOString()
+            };
+
+            MENU_REF.child(id).update(menuData)
+                .then(() => {
+                    notify(`Menu berhasil di${document.getElementById('menuId').value ? 'perbarui' : 'tambahkan'}!`, 'success');
+                    closeModal('menuModal');
+                })
+                .catch(error => notify('Gagal menyimpan menu: ' + error.message, 'error'));
+        };
+
+        window.deleteMenu = (id, name) => {
+            if (confirm(`Yakin ingin menghapus menu ${name} ini? Tindakan ini tidak dapat dibatalkan!`)) {
+                MENU_REF.child(id).remove()
+                    .then(() => {
+                        notify('Menu berhasil dihapus.', 'danger');
+                    })
+                    .catch(error => notify('Gagal menghapus menu: ' + error.message, 'error'));
+            }
+        };
+        // **POTONGAN TAMBAHAN: Fungsi Logout**
+        window.logout = () => {
+            if (confirm("Apakah Anda yakin ingin Logout?")) {
+                LOGGED_IN_RESTAURANT_ID = null;
+                localStorage.removeItem('ownerRestaurantId');
+                
+                // Sembunyikan dashboard, tampilkan login screen
+                document.getElementById('dashboardContent').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                notify('Anda berhasil Logout!', 'warning');
+            }
+        };
+
+        // --- INIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+        });
+    </script>
+</body>
+</html>
