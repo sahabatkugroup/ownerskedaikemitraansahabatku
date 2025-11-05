@@ -155,15 +155,69 @@
         .profile-content { 
             display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; 
         }
+        /* ========================================================= */
+        /* 2.2. Profile Kedai - Modifikasi Image Container & Overlay */
+        /* ========================================================= */
         .profile-image-container { 
-            width: 180px; 
-            height: auto;
-            aspect-ratio: 16 / 9; /* Rasio persegi panjang */
-            border-radius: var(--radius-sm); 
-            overflow: hidden; 
-            box-shadow: 0 0 0 3px var(--primary-color-light), var(--shadow-soft);
-            flex-shrink: 0;
-            position: relative;
+            /* ... properti sebelumnya (position: relative sudah ada) ... */
+            position: relative; /* Wajib ada */
+            overflow: hidden;
+            /* ... */
+        }
+
+        /* Styling untuk overlay informasi (Status & Alamat) */
+        .info-overlay {
+            position: absolute;
+            z-index: 5;
+            padding: 5px 8px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            line-height: 1;
+            /* Warna Latar Belakang Semi-Transparan */
+            background-color: rgba(0, 0, 0, 0.6); 
+            color: white; 
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            font-size: 12px;
+        }
+
+        /* STATUS KEDAI (Kiri Atas) */
+        .info-overlay.top-left {
+            top: 5px;
+            left: 5px;
+        }
+
+        /* ALAMAT KEDAI (Kanan Bawah) */
+        .info-overlay.bottom-right {
+            bottom: 5px;
+            right: 5px;
+            /* Menyesuaikan lebar agar tidak terlalu panjang */
+            max-width: 60%; 
+            text-align: right;
+            padding: 5px 8px;
+        }
+        
+        .info-overlay.bottom-right p {
+            margin: 0;
+            font-size: 12px;
+            /* Pastikan ikon di alamat tidak terlalu besar */
+            display: inline-flex;
+            align-items: center;
+        }
+        .info-overlay.bottom-right i {
+            margin-right: 4px;
+            font-size: 10px;
+        }
+        
+        /* Nama Kedai diubah jadi h3 di bawah h2 */
+        .profile-details h3 {
+             /* Pastikan h3 ini rata kiri/tengah sesuai preferensi Anda. Kita buat rata kiri. */
+             text-align: left; 
+             margin-top: 10px; /* Tambah jarak ke atas */
+        }
+        
+        /* Hapus styling centring H2 Profil Kedai */
+        #profileSection h2 {
+            display: none; /* Sembunyikan h2 Profil Kedai jika hanya menampilkan Nama Kedai di h3 */
         }
         .profile-image-container img { 
             width: 100%; height: 100%; object-fit: cover; 
@@ -648,9 +702,8 @@
             <div class="card-section" id="profileSection">
                 <h2>
                     <span class="title-text">
-                         <i class="fas fa-store"></i> Profil Kedai
-                    </span>
-                    </h2>
+                         <i class="fas fa-store"></i> Profil Kedai </span>
+                </h2>
                 <div class="profile-content">
                     <div class="profile-image-container">
                         <img id="profileKedaiImage" src="https://via.placeholder.com/400x225/00CAFF/ffffff?text=FOTO+KEDAI+(16:9)" alt="Foto Kedai">
@@ -658,13 +711,21 @@
                         <button id="editProfileImageBtn" class="btn btn-primary btn-sm" onclick="openProfileEditModal()">
                             <i class="fas fa-edit"></i> Edit Profil
                         </button>
+                        
+                        <div id="kedaiStatusOverlay" class="info-overlay top-left">
+                            <span id="profileKedaiStatus" class="status-indicator">Memuat...</span>
+                        </div>
+                        
+                        <div id="kedaiAddressOverlay" class="info-overlay bottom-right">
+                            <p id="profileKedaiAddress"><i class="fas fa-map-marker-alt"></i> Alamat Kedai</p>
+                        </div>
+                        
                     </div>
-                    </div>
+                    
                     <div class="profile-details">
                         <h3 id="profileKedaiName">Nama Kedai Anda</h3>
-                        <p id="profileKedaiAddress"><i class="fas fa-map-marker-alt"></i> Alamat Kedai</p>
-                        <p>Status: <span id="profileKedaiStatus" class="status-indicator">Memuat...</span></p>
-                    </div>
+                        
+                        </div>
                 </div>
             </div>
             <div class="card-section" id="gallerySection">
