@@ -45,49 +45,168 @@
         /* 2. Login Page Styling - MODIFIKASI: LEBIH KEREN & MODERN */
         /* ========================================================= */
         #loginScreen {
-            display: flex; justify-content: center; align-items: center; 
-            height: 100vh; width: 100%; position: fixed; top: 0; left: 0; 
-            /* Latar belakang keren */
-            background: linear-gradient(135deg, var(--primary-color-light) 0%, #ffffff 100%); 
-            z-index: 10000;
+            background: white;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            overflow: hidden;
         }
+
+        /* Animated background particles */
+        #loginScreen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="rgba(0,202,255,0.05)"/></svg>') repeat;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100px); }
+        }
+
         .login-card {
-            background: var(--bg-card); padding: 40px; border-radius: var(--radius-lg); 
-            /* Shadow keren dengan aksen warna primer */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 0 0 8px rgba(var(--primary-rgb), 0.1); 
-            max-width: 400px; width: 90%; text-align: center;
-            animation: fadeInScale 0.6s ease-out; /* Animasi masuk */
+            background: #00CAFF;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            animation: slideInBounce 0.8s ease-out;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
         .login-card h2 {
-            color: var(--primary-color-dark); margin-bottom: 30px; font-weight: 700;
-            font-size: 28px;
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 32px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
+
         .login-card input {
-            margin-bottom: 20px; padding: 14px; border: 1px solid #ddd; border-radius: 8px; 
-            width: 100%; font-size: 16px;
-            transition: all 0.3s;
+            margin-bottom: 25px;
+            padding: 16px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            width: 100%;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
         }
+
+        .login-card input::placeholder {
+            color: rgba(0, 0, 0, 0.5);
+            transition: color 0.3s;
+        }
+
         .login-card input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+            border-color: white;
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 1);
         }
+
+        .login-card input:focus::placeholder {
+            color: rgba(0, 0, 0, 0.7);
+        }
+
         .login-card button {
-            width: 100%; padding: 14px; background-color: var(--primary-color); color: white;
-            border: none; border-radius: 8px; font-size: 18px; font-weight: 600;
-            cursor: pointer; transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
+            width: 100%;
+            padding: 16px;
+            background: white;
+            color: #00CAFF;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
         }
-        .login-card button:hover { 
-            background-color: var(--primary-color-dark); 
-            box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.6);
+
+        .login-card button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 202, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
-        .login-card button:active { transform: scale(0.98); }
-        .error-message { color: #dc3545; margin-top: 15px; font-size: 15px; }
-        
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.95) translateY(10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+
+        .login-card button:hover::before {
+            left: 100%;
         }
+
+        .login-card button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-card button:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .error-message {
+            color: #ff4757;
+            margin-top: 20px;
+            font-size: 15px;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes slideInBounce {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) translateY(50px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05) translateY(-10px);
+            }
+            70% {
+                transform: scale(0.9) translateY(5px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px;
+                max-width: 90%;
+            }
+            .login-card h2 {
+                font-size: 24px;
+            }
+        }
+
         
         /* ========================================================= */
         /* 3. Layout & Cards (Card / Kotak) */
@@ -169,21 +288,18 @@
         .info-overlay {
             position: absolute;
             z-index: 5;
-            padding: 5px 8px;
-            border-radius: var(--radius-sm);
-            font-weight: 600;
-            line-height: 1;
-            /* Warna Latar Belakang Semi-Transparan */
-            background-color: rgba(0, 0, 0, 0.6); 
-            color: white; 
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-            font-size: 12px;
+            /* ... (properti lain dipertahankan) ... */
         }
-
-        /* STATUS KEDAI (Kiri Atas) */
+        
+        /* STATUS KEDAI (Kiri Atas) - MODIFIKASI: HAPUS SHADOW & JADIKAN TOMBOL */
         .info-overlay.top-left {
             top: 5px;
             left: 5px;
+            background-color: transparent !important; /* Hapus background overlay */
+            padding: 0 !important; /* Hapus padding overlay agar indikator bisa full control */
+            box-shadow: none !important; /* Hapus shadow overlay */
+            cursor: pointer; /* Tambahkan kursor pointer agar terlihat klikable */
+            z-index: 50; /* Pastikan sejajar dengan Edit Button */
         }
 
         /* ALAMAT KEDAI (Kanan Bawah) */
@@ -261,42 +377,64 @@
             margin-bottom: 8px; /* Jarak antar baris */
             font-weight: 500;
         }
+        /* ========================================================= */
+        /* 2.2. Profile Kedai - Modifikasi Image Container & Overlay */
+        /* ========================================================= */
+        /* ... (kode lain dipertahankan) ... */
         
+        /* Styling untuk overlay informasi (Status & Alamat) */
+        .info-overlay {
+            position: absolute;
+            z-index: 5;
+            /* ... (properti lain dipertahankan) ... */
+        }
+        
+        /* STATUS KEDAI (Kiri Atas) - MODIFIKASI: HAPUS SHADOW & JADIKAN TOMBOL */
+        .info-overlay.top-left {
+            top: 5px;
+            left: 5px;
+            background-color: transparent !important; /* Hapus background overlay */
+            padding: 0 !important; /* Hapus padding overlay agar indikator bisa full control */
+            box-shadow: none !important; /* Hapus shadow overlay */
+            cursor: pointer; /* Tambahkan kursor pointer agar terlihat klikable */
+            z-index: 50; /* Pastikan sejajar dengan Edit Button */
+        }
         /* Tampilan Status Modern */
         .status-indicator { 
-            display: inline-flex; /* Agar ikon dan teks bisa diatur */
+            display: inline-flex; 
             align-items: center;
             gap: 8px;
-            padding: 8px 15px; /* Padding lebih besar */
-            border-radius: 50px; 
-            font-weight: 700;
-            font-size: 14px; 
-            margin-top: 10px; 
-            animation: pulse 2s infinite; 
+            padding: 8px 12px; /* MODIFIKASI: Disesuaikan agar sejajar dengan Edit Profil */
+            border-radius: var(--radius-sm); /* MODIFIKASI: Disesuaikan agar kotak seperti Edit Profil */
+            font-weight: 600;
+            font-size: 14px; /* MODIFIKASI: Disesuaikan agar sejajar dengan Edit Profil */
+            margin-top: 0; /* MODIFIKASI: Hapus margin-top (default 10px) */
+            animation: none; /* MODIFIKASI: Hapus animasi pulse dari base */
             text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+            box-shadow: none !important; /* MODIFIKASI: Hapus bayangan (shadow) */
             transition: all 0.3s;
         }
         .status-indicator i {
-            font-size: 16px; /* Ukuran ikon status */
+            font-size: 14px; /* MODIFIKASI: Samakan dengan font size tombol (14px) */
         }
         
         .status-open { 
             background-color: #4CAF50; color: white; 
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); 
+            box-shadow: none !important; /* MODIFIKASI: Hapus bayangan */
         }
         
         .status-closed { 
             background-color: #ff4d4f; color: white; 
-            animation: none; /* Hilangkan animasi pulse jika tutup */
-            box-shadow: 0 4px 15px rgba(255, 77, 79, 0.4); 
+            animation: none; 
+            box-shadow: none !important; /* MODIFIKASI: Hapus bayangan */
         }
         
         /* Animasi Pulse Disesuaikan */
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.5); }
-            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+            /* MODIFIKASI: Hapus box-shadow di sini juga */
+            0% { box-shadow: none; } 
+            70% { box-shadow: none; } 
+            100% { box-shadow: none; }
         }
         
         /* ========================================================= */
@@ -466,8 +604,41 @@
         @keyframes fadeOut {
             to { opacity: 0; transform: translateX(100%); }
         }
-        
-        /* ========================================================= */
+        .whatsapp-float {
+          position: fixed;
+          bottom: 18px;
+          right: 18px;
+          background-color: #25D366;
+          color: white;
+          border-radius: 50%;
+          width: 45px;
+          height: 45px;
+          font-size: 22px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          z-index: 2000;
+          animation: bounce 2s infinite;
+          transition: transform 0.3s, box-shadow 0.3s;
+        }
+      
+        .whatsapp-float:hover {
+          transform: scale(1.1);
+          box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
+        }
+      
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-6px);
+          }
+          60% {
+            transform: translateY(-3px);
+          }
+        }        /* ========================================================= */
         /* 5. Modals & Cropping - (Sama seperti sebelumnya) */
         /* ========================================================= */
         .modal { 
@@ -711,21 +882,14 @@
                         <button id="editProfileImageBtn" class="btn btn-primary btn-sm" onclick="openProfileEditModal()">
                             <i class="fas fa-edit"></i> Edit Profil
                         </button>
-                        
-                        <div id="kedaiStatusOverlay" class="info-overlay top-left">
+                        <div id="kedaiStatusOverlay" class="info-overlay top-left" role="button" onclick="openProfileEditModal()">
                             <span id="profileKedaiStatus" class="status-indicator">Memuat...</span>
                         </div>
-                        
                         <div id="kedaiAddressOverlay" class="info-overlay bottom-right">
                             <p id="profileKedaiAddress"><i class="fas fa-map-marker-alt"></i> Alamat Kedai</p>
                         </div>
                         
                     </div>
-                    
-                    <div class="profile-details">
-                        <h3 id="profileKedaiName">Nama Kedai Anda</h3>
-                        
-                        </div>
                 </div>
             </div>
             <div class="card-section" id="gallerySection">
@@ -830,13 +994,50 @@
                 <div class="image-preview-container" style="height: 150px;">
                     <img id="menuImagePreview" src="" alt="Preview Foto Menu" style="display: block; max-height: 100%; aspect-ratio: 1/1;">
                 </div>
-                <input type="file" id="menuImageFile" accept="image/*" onchange="prepareCrop(event, 'menu')" style="margin-bottom: 15px;">
-
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Pilih Sumber Foto:</label>
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" id="sourceUpload" name="imageSource" value="upload" checked onchange="toggleImageSource('upload')">
+                            <label for="sourceUpload" style="font-weight: 400; margin: 0; display: inline-block; font-size: 12px;">Upload Baru</label>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" id="sourceDefault" name="imageSource" value="default" onchange="toggleImageSource('default')">
+                            <label for="sourceDefault" style="font-weight: 400; margin: 0; display: inline-block; font-size: 12px;">Pilih Foto</label>
+                        </div>
+                    </div>
+                </div>
+                <div id="imageUploadContainer">
+                    <input type="file" id="menuImageFile" accept="image/*" onchange="prepareCrop(event, 'menu')" style="margin-bottom: 15px;">
+                </div>
+                
+                <div id="defaultImageContainer" style="display: none;">
+                    <input type="hidden" id="selectedDefaultMenuImage" value="">
+                    <button type="button" class="btn btn-secondary" onclick="openDefaultImageModal()" style="width: 100%;">
+                        <i class="fas fa-camera"></i> Buka Galeri Foto Dasar
+                    </button>
+                </div>
                 <button type="button" class="btn btn-primary" onclick="saveMenu()" style="width: 100%;"><i class="fas fa-save"></i> Simpan Menu</button>
             </form>
         </div>
-    </div>
+    </div> 
+</div> <div id="defaultImageSelectionModal" class="modal">
+    <div class="modal-content" style="max-width: 90%; width: 400px; min-height: 400px; max-height: 80vh;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="color: var(--primary-color); margin: 0;">Pilih Foto Menu Dasar</h3>
+            <span class="close-btn" onclick="closeModal('defaultImageSelectionModal')" style="position: static; color: #aaa; font-size: 24px;">&times;</span>
+        </div>
+        <div class="modal-body" style="padding: 10px 0 0 0;">
+            <p style="margin-bottom: 15px; font-size: 14px; color: #555;">Klik pada foto untuk memilihnya. Pilihan Anda akan langsung tersimpan.</p>
+            
+            <div id="defaultMenuImagesOptionsModal" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; padding: 5px; overflow-y: auto; max-height: 55vh;">
+                </div>
 
+            <button type="button" class="btn btn-secondary" onclick="closeModal('defaultImageSelectionModal')" style="width: 100%; margin-top: 20px;">Tutup</button>
+        </div>
+    </div>
+</div>
     <div id="galleryModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('galleryModal')">&times;</span>
@@ -856,6 +1057,9 @@
             </form>
         </div>
     </div>
+    <a href="https://wa.me/6281234567890" class="whatsapp-float" target="_blank" title="Chat Admin di WhatsApp">
+      <i class="fab fa-whatsapp"></i>
+    </a>
 
     <div id="croppingModal" class="modal">
         <div class="modal-content">
@@ -892,10 +1096,50 @@
         const CLOUDINARY_CLOUD_NAME = 'sahabatkukedai'; 
         const CLOUDINARY_UPLOAD_PRESET = 'sahabatkukedai';
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-
+        const DEFAULT_MENU_IMAGES = [
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370534/11_ohvz7w.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370535/26_jiok5o.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370534/27_wo85pq.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370534/28_gkpovp.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370533/12_egjeja.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370533/13_nex7wj.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370532/16_ftiqhm.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370522/17_1_jdzm2j.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370520/18_b7dh5j.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370519/8_vbvegb.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370520/19_lap6ph.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370520/10_gcuab4.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370519/20_rxapqr.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370519/9_kftyji.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370518/6_t5556r.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370518/6_t5556r.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370517/7_nngow8.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369930/24_rcktqv.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369929/5_1_mcyvv3.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369929/4_1_iiplhn.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369928/25_mkcmqs.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369927/23_c1h6jg.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369926/22_bo3sqs.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369925/21_m4fqa7.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369924/36_qeztrg.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370532/15_fgvmxg.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762371297/Menu_Baru_Makanan_Spesial_17_Agustus_Konten_Instagram_o91wsc.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370533/30_ruvawd.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369931/35_fxyams.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370533/29_xzhbai.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369939/3_1_ad5gw1.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369928/31_ts8jv7.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369927/32_epkps3.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369927/33_quaaam.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369926/34_jass2l.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370532/14_akc33h.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370533/13_nex7wj.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762408557/38_t0vpts.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762408557/39_nymhzg.png',
+        ];
         // Default Images
-        const DEFAULT_RESTAURANT_IMAGE = "https://res.cloudinary.com/sahabatkukedai/image/upload/v1762304141/Menu_Baru_Makanan_Spesial_17_Agustus_Konten_Instagram_3_xwmjag.png";
-        const DEFAULT_MENU_IMAGE = "https://res.cloudinary.com/sahabatkukedai/image/upload/v1762303437/Menu_Baru_Makanan_Spesial_17_Agustus_Konten_Instagram_2_rwqsmi.png";
+        const DEFAULT_RESTAURANT_IMAGE = "https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369997/2_1_n3lrzm.png";
+        const DEFAULT_MENU_IMAGE = "https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370519/8_vbvegb.png";
         const DEFAULT_GALLERY_IMAGE = "https://via.placeholder.com/600x400/33FF57/ffffff?text=FOTO+GALERI";
 
         // Firebase Initialization
@@ -918,12 +1162,122 @@
 
         // Kategori Master (Sesuai Permintaan)
         const MENU_CATEGORIES = [
-            'Jajanan', 'Minuman Dingin', 'Makanan Manis', 'Cepat Saji', 'Aneka Nasi', 'Ayam & Bebek', 
-            'Kopi', 'Non-Kopi', 'Bakmi', 'Seafood', 'Roti', 'Sate', 'Bakso & Soto', 'Martabak', 
-            'Gorengan','Cemilan', 'Mie', 'Jus', 'Es Teh','Lauk','Ikan','Nasi Goreng','Seblak',
-            'Sarapan Pagi','Ayam Geprek','Minuman Kekinian','Chiken'
+            'Jajanan & Cemilan', 'Minuman Dingin', 'Makanan Berat', 'Cepat Saji', 'Aneka Nasi', 'Ayam & Bebek', 
+            'Kopi', 'Non-Kopi', 'Bakmi & Mie', 'Seafood', 'Roti', 'Sate', 'Bakso & Soto', 'Martabak', 
+            'Gorengan','Cemilan', 'Dimsum', 'Jus', 'Es','Lauk','Ikan','Nasi Goreng','Seblak','Makanan Manis',
+            'Sarapan Pagi','Ayam Geprek','Minuman Kekinian','Nasi','Makanan Tradisional','Jepang','Korea','Street Food','Makanan Sehat','Toping'
         ];
+        window.openDefaultImageModal = () => {
+            // 1. Pastikan foto-foto default dirender di modal baru
+            renderDefaultMenuImages('defaultMenuImagesOptionsModal');
+            
+            // 2. Buka modal baru (ID modal yang sudah Anda buat di langkah sebelumnya)
+            openModal('defaultImageSelectionModal', 'Pilih Foto Menu Dasar'); 
+        }
+        const renderDefaultMenuImages = (containerId) => {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = ''; 
         
+            const selectedUrl = document.getElementById('selectedDefaultMenuImage').value; // Ambil URL yang sudah dipilih
+            
+            DEFAULT_MENU_IMAGES.forEach((url, index) => {
+                const item = document.createElement('div');
+                item.className = 'default-image-option';
+                
+                // Cek dan beri border pada foto yang sudah dipilih
+                item.style.cssText = `
+                    width: 80px; height: 80px; border: 3px solid ${url === selectedUrl ? 'var(--primary-color)' : 'transparent'}; border-radius: 8px; 
+                    overflow: hidden; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                `;
+                item.innerHTML = `<img src="${url}" alt="Default Menu ${index + 1}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                item.onclick = () => selectDefaultImage(url, item);
+                container.appendChild(item);
+            });
+        };
+        const selectDefaultImage = (url, element) => {
+            // Hapus highlight dari semua pilihan di modal popup
+            document.querySelectorAll('#defaultImageSelectionModal .default-image-option').forEach(el => {
+                el.style.borderColor = 'transparent';
+            });
+            // Highlight pilihan yang baru
+            element.style.borderColor = 'var(--primary-color)';
+            
+            document.getElementById('selectedDefaultMenuImage').value = url;
+            document.getElementById('menuImagePreview').src = url;
+            document.getElementById('menuImagePreview').style.display = 'block';
+            
+            // Pastikan radio button default terpilih (ini penting!)
+            document.getElementById('sourceDefault').checked = true;
+            toggleImageSource('default'); 
+            
+            // !!! TUTUP MODAL POPUP SETELAH MEMILIH !!!
+            closeModal('defaultImageSelectionModal'); 
+            const name = document.getElementById('menuName').value;
+            const price = document.getElementById('menuPriceDisplay').value; // Ambil dari input display
+            const selectedCategories = Array.from(document.querySelectorAll('.category-options input[type="checkbox"]:checked'));
+        
+            // Cek apakah ini adalah mode Edit atau Tambah Baru.
+            // Jika ada Nama, Harga, dan Kategori, kita bisa panggil saveMenu
+            if (name && price && selectedCategories.length > 0) {
+                // Panggil fungsi penyimpanan
+                saveMenu();
+            } else {
+                // Jika belum lengkap, beri notifikasi dan biarkan user melengkapi di modal utama
+                notify('Pilihan foto berhasil disimpan. Lengkapi Nama, Harga, dan Kategori Menu terlebih dahulu!', 'warning');
+            }
+        };
+        window.toggleImageSource = (source) => {
+            document.getElementById('imageUploadContainer').style.display = source === 'upload' ? 'block' : 'none';
+            document.getElementById('defaultImageContainer').style.display = source === 'default' ? 'block' : 'none';
+        
+            // Reset nilai yang tidak digunakan
+            if (source === 'upload') {
+                document.getElementById('selectedDefaultMenuImage').value = '';
+                // Hapus border highlight dari default images di modal popup jika ada
+                document.querySelectorAll('#defaultImageSelectionModal .default-image-option').forEach(el => {
+                    el.style.borderColor = 'transparent';
+                });
+        
+                // Tampilkan placeholder jika tidak ada file yang diupload saat beralih ke upload
+                const preview = document.getElementById('menuImagePreview');
+                if (!document.getElementById('menuImageFile').files.length && !document.getElementById('menuImageFile').croppedFile) {
+                     preview.src = ''; 
+                     preview.style.display = 'none';
+                }
+            } else { // source === 'default'
+                document.getElementById('menuImageFile').value = ''; // Hapus file yang dipilih
+                delete document.getElementById('menuImageFile').croppedFile; // Hapus cropped file
+                
+                // Atur preview ke gambar default yang sudah dipilih (jika ada) atau placeholder
+                const selectedUrl = document.getElementById('selectedDefaultMenuImage').value;
+                const preview = document.getElementById('menuImagePreview');
+                preview.src = selectedUrl || DEFAULT_MENU_IMAGE;
+                preview.style.display = 'block';
+            }
+        }  
+        window.selectDefaultMenuImage = (url, element) => {
+            // Hapus highlight dari semua pilihan di modal popup
+            document.querySelectorAll('#defaultImageSelectionModal .default-image-option').forEach(el => { el.style.borderColor = 'transparent'; });
+            
+            // Highlight pilihan yang baru
+            element.style.borderColor = 'var(--primary-color)';
+        
+            // Menyimpan URL foto yang dipilih ke input tersembunyi
+            document.getElementById('selectedDefaultMenuImage').value = url;
+            
+            // Menampilkan preview foto
+            document.getElementById('menuImagePreview').src = url;
+            document.getElementById('menuImagePreview').style.display = 'block';
+        
+            // Memastikan radio button 'Pilih Foto Dasar' terpilih
+            document.getElementById('sourceDefault').checked = true;
+            window.toggleImageSource('default'); 
+        
+            // Menutup modal setelah memilih
+            closeModal('defaultImageSelectionModal');
+        };
         // --- UTILITY FUNCTIONS ---
         // Fungsi untuk mengupdate teks status manual
         const updateManualStatusLabel = (isOpen) => {
@@ -1209,7 +1563,6 @@
             document.getElementById('headerGreeting').textContent = `Halo, ${r.name || 'Owner'}!`;
 
             document.getElementById('profileKedaiImage').src = r.image || DEFAULT_RESTAURANT_IMAGE;
-            document.getElementById('profileKedaiName').textContent = r.name || 'Nama Kedai Tidak Ada';
             document.getElementById('profileKedaiAddress').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${r.address || 'Alamat Kedai Tidak Ada'}`;
             let statusIcon = statusClass === 'status-open' ? '<i class="fas fa-store-alt"></i>' : '<i class="fas fa-door-closed"></i>';
             document.getElementById('profileKedaiStatus').textContent = status;
@@ -1497,12 +1850,17 @@
             document.getElementById('menuPrice').value = '';
             document.getElementById('menuImageFile').value = '';
             delete document.getElementById('menuImageFile').croppedFile;
-
+            renderDefaultMenuImages();
+            document.getElementById('selectedDefaultMenuImage').value = '';
+            document.getElementById('sourceUpload').checked = true;
+            toggleImageSource('upload');
+            
+            // Hapus border highlight dari default images
+            document.querySelectorAll('.default-image-option').forEach(el => el.style.borderColor = 'transparent');
+            let currentImage = DEFAULT_MENU_IMAGE;
             if (isNew) {
                 openModal('menuModal', 'Tambah Menu Baru');
-                document.getElementById('menuImagePreview').src = DEFAULT_MENU_IMAGE;
-                document.getElementById('menuImagePreview').style.display = 'block';
-                renderMenuCategoryOptions([]);
+
             } else {
                 const m = ALL_MENUS[id];
                 if (!m) return;
@@ -1512,9 +1870,29 @@
                 document.getElementById('menuName').value = m.name;
                 document.getElementById('menuPriceDisplay').value = formatRupiah(m.price);
                 document.getElementById('menuPrice').value = m.price;
-                document.getElementById('menuImagePreview').src = m.image || DEFAULT_MENU_IMAGE;
-                document.getElementById('menuImagePreview').style.display = 'block';
-                renderMenuCategoryOptions(m.category || []);
+                currentImage = m.image || DEFAULT_MENU_IMAGE;
+                if (DEFAULT_MENU_IMAGES.includes(currentImage)) {
+                  document.getElementById('sourceDefault').checked = true;
+                  document.getElementById('selectedDefaultMenuImage').value = currentImage;
+                  // Tambahkan highlight pada pilihan default yang sesuai
+                  document.querySelectorAll('.default-image-option').forEach(el => {
+                      const imgUrl = el.querySelector('img').src;
+                      if (imgUrl === currentImage) {
+                          el.style.borderColor = 'var(--primary-color)';
+                      }
+                  });
+                  toggleImageSource('default'); // Panggil toggle setelah semua state diatur
+              } else {
+                   // Jika bukan gambar default, tetap di mode upload
+                   toggleImageSource('upload');
+              }
+          }
+          document.getElementById('menuImagePreview').src = currentImage;
+          document.getElementById('menuImagePreview').style.display = 'block'
+              if (!isNew && m && m.categories) {
+                renderMenuCategoryOptions(m.category); // Jika Edit, pakai kategori lama
+            } else {
+                renderMenuCategoryOptions([]); // Jika Tambah Baru atau m.categories kosong
             }
         };
 
@@ -1523,49 +1901,89 @@
             document.getElementById('menuPrice').value = rawValue;
             e.target.value = formatRupiah(rawValue, '');
         });
-
         window.saveMenu = async () => {
             const id = document.getElementById('menuId').value || MENU_REF.push().key;
+            const isNew = !document.getElementById('menuId').value;
             const name = document.getElementById('menuName').value;
-            const price = document.getElementById('menuPrice').value;
-            const categories = getSelectedMenuCategories();
-            const imageFileInput = document.getElementById('menuImageFile');
+            const oldPrice = ALL_MENUS[id]?.price || 0;
+            const priceDisplay = document.getElementById('menuPriceDisplay').value;
+            const priceHidden = document.getElementById('menuPrice').value;
+            let price;
+            if (priceDisplay) {
+                // User mengetik di display: Bersihkan format (Rp, .) dan gunakan nilai baru
+                price = parseInt(priceDisplay.replace(/[^0-9]/g, '') || 0);
+            } else if (priceHidden) {
+                // Display kosong, tapi hidden field terisi: Gunakan hidden field (nilai integer)
+                price = parseInt(priceHidden);
+            } else {
+                price = isNew ? 0 : oldPrice; // <-- AMAN: pakai ALL_MENUS[id].price jika edit
+            }
 
-            if (!name || !price || categories.length === 0) {
-                notify('Nama, Harga, dan Kategori Menu wajib diisi!', 'error');
+            // Mengambil semua kategori yang dicentang
+            const selectedCategories = Array.from(document.querySelectorAll('#menuCategoryOptions input[type="checkbox"]:checked'))
+                .map(el => el.value);
+                
+            // Mengetahui sumber gambar yang dipilih
+            const imageSource = document.querySelector('input[name="imageSource"]:checked').value;
+            const menuImageFile = document.getElementById('menuImageFile');
+        
+            // **VALIDASI INPUT WAJIB**
+            if (!name || price <= 0 || selectedCategories.length === 0) {
+                notify('Nama Menu, Harga, dan minimal satu Kategori tidak boleh kosong!', 'error');
                 return;
             }
+            if (!isNew && price === 0 && oldPrice > 0) {
+                price = oldPrice;
+            }
             
-            let imageUrl = ALL_MENUS[id]?.image;
-
-            if (imageFileInput.croppedFile) {
-                imageUrl = await uploadImageToCloudinary(imageFileInput.croppedFile);
-                if (!imageUrl) return;
+            let imageUrl = ALL_MENUS[id]?.image || DEFAULT_MENU_IMAGE;
+            
+            // --- LOGIKA PENANGANAN GAMBAR ---
+            if (imageSource === 'upload') {
+                // Mode Upload Baru
+                if (menuImageFile.croppedFile) {
+                    // Jika sudah di-crop, unggah file tersebut
+                    notify('Mengunggah gambar menu...', 'warning');
+                    // Asumsi 'uploadImageToCloudinary' ada dan mengembalikan URL
+                    imageUrl = await uploadImageToCloudinary(menuImageFile.croppedFile);
+                    if (!imageUrl) return; // Gagal upload
+                } else if (isNew && !ALL_MENUS[id]?.image) {
+                    // Mode Tambah Baru & Tidak Ada Gambar: Wajib ada foto
+                    notify('Foto menu wajib diisi untuk menu baru!', 'error');
+                    return;
+                } 
+            } else if (imageSource === 'default') {
+                // Mode Pilih Foto Dasar
+                imageUrl = document.getElementById('selectedDefaultMenuImage').value;
+                if (!imageUrl) {
+                    notify('Pilih salah satu foto dasar sebelum menyimpan!', 'error');
+                    return;
+                }
             }
-            if (!imageUrl) {
-                imageUrl = DEFAULT_MENU_IMAGE;
-
-            }
-
+            
+            // Data yang akan disimpan ke Firebase
             const menuData = {
                 id: id,
                 restaurantId: LOGGED_IN_RESTAURANT_ID,
                 name: name,
-                price: parseInt(price),
-                category: categories,
+                price: price,
+                category: selectedCategories,
                 image: imageUrl,
-                isPublished: true, // Default publish
+                isPublished: ALL_MENUS[id]?.isPublished !== false,
                 updatedAt: new Date().toISOString()
             };
-
+        
+            // Simpan ke Firebase Realtime Database
             MENU_REF.child(id).update(menuData)
                 .then(() => {
-                    notify(`Menu berhasil di${document.getElementById('menuId').value ? 'perbarui' : 'tambahkan'}!`, 'success');
+                    notify(`Menu ${name} berhasil di${isNew ? 'tambahkan' : 'perbarui'}!`, 'success');
                     closeModal('menuModal');
+                    // Reset input file setelah berhasil
+                    document.getElementById('menuImageFile').value = '';
+                    delete document.getElementById('menuImageFile').croppedFile;
                 })
                 .catch(error => notify('Gagal menyimpan menu: ' + error.message, 'error'));
         };
-
         window.deleteMenu = (id, name) => {
             if (confirm(`Yakin ingin menghapus menu ${name} ini? Tindakan ini tidak dapat dibatalkan!`)) {
                 MENU_REF.child(id).remove()
@@ -1589,6 +2007,13 @@
                 notify('Anda berhasil Logout!', 'warning');
             }
         };
+        window.openDefaultImageModal = () => {
+            // 1. Pastikan foto-foto default dirender di modal baru
+            renderDefaultMenuImages('defaultMenuImagesOptionsModal');
+            
+            // 2. Buka modal baru
+            openModal('defaultImageSelectionModal', 'Pilih Foto Menu Dasar'); 
+        }
 
         // --- INIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
