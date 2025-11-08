@@ -377,16 +377,11 @@
             margin-bottom: 8px; /* Jarak antar baris */
             font-weight: 500;
         }
-        /* ========================================================= */
-        /* 2.2. Profile Kedai - Modifikasi Image Container & Overlay */
-        /* ========================================================= */
-        /* ... (kode lain dipertahankan) ... */
         
         /* Styling untuk overlay informasi (Status & Alamat) */
         .info-overlay {
             position: absolute;
             z-index: 5;
-            /* ... (properti lain dipertahankan) ... */
         }
         
         /* STATUS KEDAI (Kiri Atas) - MODIFIKASI: HAPUS SHADOW & JADIKAN TOMBOL */
@@ -442,7 +437,7 @@
         /* ========================================================= */
         .menu-grid, .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+            grid-template-columns: repeat(auto-fill, minmax(3, 1fr)); 
             gap: 15px;
             padding-top: 10px;
         }
@@ -765,6 +760,29 @@
             content: "BUKA"; /* Teks setelah digeser */
             color: #4CAF50;
         }        
+        /* Potongan CSS Tambahan untuk Toping */
+        .topping-input-group {
+            display: flex;
+            gap: 10px; /* Jarak antara nama toping, harga, dan tombol hapus */
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .topping-input-group input[type="text"] {
+            flex-grow: 1; /* Nama Toping akan mengambil sisa ruang */
+        }
+        .topping-input-group input[type="number"] {
+            width: 100px; /* Lebar tetap untuk Harga Toping */
+            flex-shrink: 0;
+            text-align: right;
+        }
+        .topping-input-group .btn-danger {
+            padding: 10px 10px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
         /* ========================================================= */
         /* 6. Mobile Responsiveness - FIX AKHIR */
         /* ========================================================= */
@@ -979,11 +997,22 @@
                 <input type="hidden" id="menuId">
                 <div class="form-group"><label>Nama Menu:</label><input type="text" id="menuName" required></div>
                 <div class="form-group">
+                    <label>Deskripsi Menu:</label>
+                    <textarea id="menuDescription" rows="3" placeholder="Contoh: Ayam goreng renyah dengan sambal pedas, cocok untuk yang suka pedas."></textarea>
+                </div>
+                <div class="form-group">
                     <label>Harga (contoh: 10.000):</label>
                     <input type="text" id="menuPriceDisplay" required placeholder="Cth: 10.000">
                     <input type="hidden" id="menuPrice">
                 </div>
-                
+                <div class="form-group">
+                    <label style="margin-bottom: 10px;">Toping (Opsional):</label>
+                    <div id="toppingsContainer">
+                        </div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="addToppingField()">
+                        <i class="fas fa-plus"></i> Tambah Toping
+                    </button>
+                </div>               
                 <div class="form-group">
                     <label>Kategori Menu (Pilih satu atau lebih):</label>
                     <div id="menuCategoryOptions" class="category-options">
@@ -1132,6 +1161,10 @@
             'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370532/15_fgvmxg.png',
             'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762371297/Menu_Baru_Makanan_Spesial_17_Agustus_Konten_Instagram_o91wsc.png',
             'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370533/30_ruvawd.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762622977/40_vmqgag.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762622945/53_ebxcbg.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762602515/44_ltzetc.png',
+            'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762635032/49_nn5t2q.png',
             'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369931/35_fxyams.png',
             'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762370533/29_xzhbai.png',
             'https://res.cloudinary.com/sahabatkukedai/image/upload/v1762369939/3_1_ad5gw1.png',
@@ -1851,146 +1884,176 @@
                 container.appendChild(item);
             });
         };
-
+        // =========================================================
+        // >>> [GANTI TOTAL] FUNGSI openMenuModal YANG SUDAH ADA <<<
+        // =========================================================
+        
         window.openMenuModal = (isNew, id = null) => {
+            // Cari data menu
+            const m = ALL_MENUS[id]; 
+        
+            // 1. Reset Form & State Awal
             document.getElementById('menuFormData').reset();
-            document.getElementById('menuId').value = '';
+            document.getElementById('menuId').value = id || ''; // Tetapkan ID jika ada
             document.getElementById('menuPrice').value = '';
             document.getElementById('menuImageFile').value = '';
             delete document.getElementById('menuImageFile').croppedFile;
             renderDefaultMenuImages();
             document.getElementById('selectedDefaultMenuImage').value = '';
             document.getElementById('sourceUpload').checked = true;
-            toggleImageSource('upload');
-            
-            // Hapus border highlight dari default images
             document.querySelectorAll('.default-image-option').forEach(el => el.style.borderColor = 'transparent');
+            
+            // >>> Tambahan: Hapus semua field toping sebelumnya <<<
+            document.getElementById('toppingsContainer').innerHTML = ''; 
+        
             let currentImage = DEFAULT_MENU_IMAGE;
-            if (isNew) {
-                openModal('menuModal', 'Tambah Menu Baru');
-
-            } else {
-                const m = ALL_MENUS[id];
-                if (!m) return;
-
-                openModal('menuModal', `Edit Menu: ${m.name}`);
+            
+            // Tentukan Judul Modal
+            // Menggunakan openModal() dengan 2 argumen sesuai kode Anda
+            openModal('menuModal', isNew ? 'Tambah Menu Baru' : `Edit Menu: ${m ? m.name : ''}`);
+            
+            if (!isNew && m) {
+                // --- MODE EDIT ---
+                
                 document.getElementById('menuId').value = m.id;
                 document.getElementById('menuName').value = m.name;
-                document.getElementById('menuPriceDisplay').value = formatRupiah(m.price);
-                document.getElementById('menuPrice').value = m.price;
+                
+                // >>> TAMBAHAN: ISI DESKRIPSI MENU <<<
+                document.getElementById('menuDescription').value = m.description || ''; 
+                
+                document.getElementById('menuPriceDisplay').value = formatRupiah(m.price, ''); 
+                document.getElementById('menuPrice').value = m.price; 
                 currentImage = m.image || DEFAULT_MENU_IMAGE;
+        
+                // >>> TAMBAHAN: ISI TOPING YANG SUDAH TERSIMPAN <<<
+                if (m.toppings && m.toppings.length > 0) {
+                    m.toppings.forEach(topping => {
+                        addToppingField(topping.name, topping.price); 
+                    });
+                } else {
+                    // Tambahkan 1 field kosong jika belum ada topping
+                    addToppingField();
+                }
+        
+                // Image handling (Sama seperti kode Anda)
                 if (DEFAULT_MENU_IMAGES.includes(currentImage)) {
-                  document.getElementById('sourceDefault').checked = true;
-                  document.getElementById('selectedDefaultMenuImage').value = currentImage;
-                  // Tambahkan highlight pada pilihan default yang sesuai
-                  document.querySelectorAll('.default-image-option').forEach(el => {
-                      const imgUrl = el.querySelector('img').src;
-                      if (imgUrl === currentImage) {
-                          el.style.borderColor = 'var(--primary-color)';
-                      }
-                  });
-                  toggleImageSource('default'); // Panggil toggle setelah semua state diatur
-              } else {
-                   // Jika bukan gambar default, tetap di mode upload
-                   toggleImageSource('upload');
-              }
-          }
-          document.getElementById('menuImagePreview').src = currentImage;
-          document.getElementById('menuImagePreview').style.display = 'block'
-              if (!isNew && m && m.categories) {
-                renderMenuCategoryOptions(m.category); // Jika Edit, pakai kategori lama
+                    document.getElementById('sourceDefault').checked = true;
+                    document.getElementById('selectedDefaultMenuImage').value = currentImage;
+                    document.querySelectorAll('.default-image-option').forEach(el => {
+                        const imgUrl = el.querySelector('img').src;
+                        if (imgUrl === currentImage) {
+                            el.style.borderColor = 'var(--primary-color)';
+                        }
+                    });
+                    toggleImageSource('default'); 
+                } else {
+                    toggleImageSource('upload');
+                }
+        
             } else {
-                renderMenuCategoryOptions([]); // Jika Tambah Baru atau m.categories kosong
+                // --- MODE TAMBAH BARU ---
+                
+                // Image handling (Default ke Upload)
+                document.getElementById('sourceUpload').checked = true;
+                toggleImageSource('upload');
+                
+                // >>> TAMBAHAN: Tambahkan 1 field Toping kosong secara default <<<
+                addToppingField(); 
+            }
+            
+            // Update Preview Gambar
+            document.getElementById('menuImagePreview').src = currentImage;
+            document.getElementById('menuImagePreview').style.display = 'block';
+        
+            // Update Kategori
+            if (!isNew && m && m.category) { 
+                renderMenuCategoryOptions(m.category); 
+            } else {
+                renderMenuCategoryOptions([]); 
             }
         };
-
-        document.getElementById('menuPriceDisplay').addEventListener('input', (e) => {
-            const rawValue = e.target.value.replace(/[^0-9]/g, ''); 
-            document.getElementById('menuPrice').value = rawValue;
-            e.target.value = formatRupiah(rawValue, '');
-        });
+        // =========================================================
+        // >>> [GANTI TOTAL] FUNGSI saveMenu YANG SUDAH ADA <<<
+        // =========================================================
+        
         window.saveMenu = async () => {
             const id = document.getElementById('menuId').value || MENU_REF.push().key;
             const isNew = !document.getElementById('menuId').value;
             const name = document.getElementById('menuName').value;
+            
+            // >>> TAMBAHAN: Ambil Deskripsi Menu <<<
+            const description = document.getElementById('menuDescription').value.trim(); 
+            
+            // Price Handling
             const oldPrice = ALL_MENUS[id]?.price || 0;
             const priceDisplay = document.getElementById('menuPriceDisplay').value;
             const priceHidden = document.getElementById('menuPrice').value;
-            let price;
-            if (priceDisplay) {
-                // User mengetik di display: Bersihkan format (Rp, .) dan gunakan nilai baru
-                price = parseInt(priceDisplay.replace(/[^0-9]/g, '') || 0);
-            } else if (priceHidden) {
-                // Display kosong, tapi hidden field terisi: Gunakan hidden field (nilai integer)
-                price = parseInt(priceHidden);
-            } else {
-                price = isNew ? 0 : oldPrice; // <-- AMAN: pakai ALL_MENUS[id].price jika edit
-            }
-
+            let price; 
+            if (priceDisplay) { 
+                price = parseInt(priceDisplay.replace(/[^0-9]/g, '') || 0); 
+            } else if (priceHidden) { 
+                price = parseInt(priceHidden); 
+            } else { 
+                price = isNew ? 0 : oldPrice;
+            } 
+            
             // Mengambil semua kategori yang dicentang
-            const selectedCategories = Array.from(document.querySelectorAll('#menuCategoryOptions input[type="checkbox"]:checked'))
-                .map(el => el.value);
-                
-            // Mengetahui sumber gambar yang dipilih
-            const imageSource = document.querySelector('input[name="imageSource"]:checked').value;
-            const menuImageFile = document.getElementById('menuImageFile');
+            const categories = getSelectedMenuCategories();
+            
+            // >>> TAMBAHAN: Ambil data Toping menggunakan fungsi baru <<<
+            const toppings = getToppingsFromForm();
         
-            // **VALIDASI INPUT WAJIB**
-            if (!name || price <= 0 || selectedCategories.length === 0) {
-                notify('Nama Menu, Harga, dan minimal satu Kategori tidak boleh kosong!', 'error');
+            if (!name || !priceDisplay || categories.length === 0) {
+                notify('Mohon isi Nama Menu, Harga, dan minimal satu Kategori.', 'warning');
                 return;
             }
-            if (!isNew && price === 0 && oldPrice > 0) {
-                price = oldPrice;
-            }
             
-            let imageUrl = ALL_MENUS[id]?.image || DEFAULT_MENU_IMAGE;
-            
-            // --- LOGIKA PENANGANAN GAMBAR ---
-            if (imageSource === 'upload') {
-                // Mode Upload Baru
-                if (menuImageFile.croppedFile) {
-                    // Jika sudah di-crop, unggah file tersebut
-                    notify('Mengunggah gambar menu...', 'warning');
-                    // Asumsi 'uploadImageToCloudinary' ada dan mengembalikan URL
-                    imageUrl = await uploadImageToCloudinary(menuImageFile.croppedFile);
-                    if (!imageUrl) return; // Gagal upload
-                } else if (isNew && !ALL_MENUS[id]?.image) {
-                    // Mode Tambah Baru & Tidak Ada Gambar: Wajib ada foto
-                    notify('Foto menu wajib diisi untuk menu baru!', 'error');
-                    return;
-                } 
-            } else if (imageSource === 'default') {
-                // Mode Pilih Foto Dasar
-                imageUrl = document.getElementById('selectedDefaultMenuImage').value;
-                if (!imageUrl) {
-                    notify('Pilih salah satu foto dasar sebelum menyimpan!', 'error');
-                    return;
-                }
-            }
-            
-            // Data yang akan disimpan ke Firebase
+            // Data menu yang akan disimpan
             const menuData = {
-                id: id,
-                restaurantId: LOGGED_IN_RESTAURANT_ID,
                 name: name,
+                description: description, // NEW FIELD
                 price: price,
-                category: selectedCategories,
-                image: imageUrl,
-                isPublished: ALL_MENUS[id]?.isPublished !== false,
-                updatedAt: new Date().toISOString()
+                category: categories,
+                toppings: toppings, // NEW FIELD
+                image: ALL_MENUS[id]?.image || DEFAULT_MENU_IMAGE, 
+                imageSource: ALL_MENUS[id]?.imageSource || 'upload',
+                // isHidden: ALL_MENUS[id]?.isHidden || false 
             };
+            
+            // *** Logic Upload Gambar (Tetap) ***
+            const imageFile = document.getElementById('menuImageFile').croppedFile;
+            const imageSource = document.querySelector('input[name="imageSource"]:checked').value;
+            let uploadPromise = Promise.resolve();
+            
+            if (imageSource === 'default') {
+                menuData.image = document.getElementById('selectedDefaultMenuImage').value || DEFAULT_MENU_IMAGE;
+                menuData.imageSource = 'default';
+            } else if (imageFile) {
+                const fileName = `menus/${LOGGED_IN_RESTAURANT_ID}/${id}.jpg`;
+                uploadPromise = storage.ref(fileName).put(imageFile)
+                    .then(snapshot => snapshot.ref.getDownloadURL())
+                    .then(url => {
+                        menuData.image = url;
+                        menuData.imageSource = 'upload';
+                    });
+            } else {
+                menuData.image = ALL_MENUS[id]?.image || DEFAULT_MENU_IMAGE;
+                menuData.imageSource = ALL_MENUS[id]?.imageSource || 'upload';
+            }
         
-            // Simpan ke Firebase Realtime Database
-            MENU_REF.child(id).update(menuData)
-                .then(() => {
-                    notify(`Menu ${name} berhasil di${isNew ? 'tambahkan' : 'perbarui'}!`, 'success');
-                    closeModal('menuModal');
-                    // Reset input file setelah berhasil
-                    document.getElementById('menuImageFile').value = '';
-                    delete document.getElementById('menuImageFile').croppedFile;
-                })
-                .catch(error => notify('Gagal menyimpan menu: ' + error.message, 'error'));
+            // Simpan ke Firebase (setelah upload gambar selesai)
+            uploadPromise.then(() => {
+                // Koneksi Firebase: Menyimpan data menuData yang sudah diperbarui
+                MENU_REF.child(id).update(menuData)
+                    .then(() => {
+                        notify(`Menu ${name} berhasil di${isNew ? 'tambahkan' : 'perbarui'}!`, 'success');
+                        closeModal('menuModal'); 
+                        document.getElementById('menuImageFile').value = '';
+                        delete document.getElementById('menuImageFile').croppedFile;
+                    })
+                    .catch(error => notify('Gagal menyimpan menu: ' + error.message, 'error'));
+            })
+            .catch(error => notify('Gagal mengunggah gambar: ' + error.message, 'error'));
         };
         window.deleteMenu = (id, name) => {
             if (confirm(`Yakin ingin menghapus menu ${name} ini? Tindakan ini tidak dapat dibatalkan!`)) {
@@ -2000,6 +2063,61 @@
                     })
                     .catch(error => notify('Gagal menghapus menu: ' + error.message, 'error'));
             }
+        };
+        // =========================================================
+        // >>> TAMBAHAN FUNGSI UNTUK MENGELOLA TOPING <<<
+        // =========================================================
+        
+        // Fungsi untuk menambahkan pasangan input Nama Toping dan Harga Toping
+        window.addToppingField = (name = '', price = 0) => {
+            const container = document.getElementById('toppingsContainer');
+            
+            const group = document.createElement('div');
+            group.className = 'topping-input-group';
+            
+            // Input Nama Toping
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.placeholder = 'Nama Toping (Cth: Sambal Geprek)';
+            nameInput.value = name;
+            nameInput.className = 'topping-name-input';
+            
+            // Input Harga Toping
+            const priceInput = document.createElement('input');
+            priceInput.type = 'number';
+            priceInput.placeholder = 'Harga (0=Gratis)';
+            priceInput.value = price;
+            priceInput.min = 0;
+            priceInput.className = 'topping-price-input';
+        
+            // Tombol Hapus
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.className = 'btn btn-danger btn-icon';
+            deleteButton.innerHTML = '<i class="fas fa-times"></i>';
+            deleteButton.onclick = () => group.remove();
+        
+            group.appendChild(nameInput);
+            group.appendChild(priceInput);
+            group.appendChild(deleteButton);
+            container.appendChild(group);
+        };
+        
+        // Fungsi untuk mengambil data toping dari form
+        const getToppingsFromForm = () => {
+            const toppings = [];
+            document.querySelectorAll('#toppingsContainer .topping-input-group').forEach(group => {
+                const nameInput = group.querySelector('.topping-name-input');
+                const priceInput = group.querySelector('.topping-price-input');
+                
+                if (nameInput.value.trim() !== '') {
+                    toppings.push({
+                        name: nameInput.value.trim(),
+                        price: parseInt(priceInput.value) || 0 // Pastikan harga adalah integer (gratis = 0)
+                    });
+                }
+            });
+            return toppings;
         };
         // **POTONGAN TAMBAHAN: Fungsi Logout**
         window.logout = () => {
