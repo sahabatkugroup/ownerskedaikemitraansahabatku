@@ -1006,11 +1006,11 @@
                     <input type="hidden" id="menuPrice">
                 </div>
                 <div class="form-group">
-                    <label style="margin-bottom: 10px;">Toping (Opsional):</label>
+                    <label style="margin-bottom: 10px;">Varian/Topping (Opsional):</label>
                     <div id="toppingsContainer">
                         </div>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="addToppingField()">
-                        <i class="fas fa-plus"></i> Tambah Toping
+                        <i class="fas fa-plus"></i> Tambah Varian/Topping 
                     </button>
                 </div>               
                 <div class="form-group">
@@ -1951,8 +1951,7 @@
                 }
         
             } else {
-                // --- MODE TAMBAH BARU ---
-                
+
                 // Image handling (Default ke Upload)
                 document.getElementById('sourceUpload').checked = true;
                 toggleImageSource('upload');
@@ -2078,7 +2077,7 @@
             // Input Nama Toping
             const nameInput = document.createElement('input');
             nameInput.type = 'text';
-            nameInput.placeholder = 'Nama Toping (Cth: Sambal Geprek)';
+            nameInput.placeholder = 'Nama Varian/Toping (Cth: Sambal Geprek)';
             nameInput.value = name;
             nameInput.className = 'topping-name-input';
             
@@ -2103,7 +2102,6 @@
             container.appendChild(group);
         };
         
-        // Fungsi untuk mengambil data toping dari form
         const getToppingsFromForm = () => {
             const toppings = [];
             document.querySelectorAll('#toppingsContainer .topping-input-group').forEach(group => {
