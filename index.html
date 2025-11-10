@@ -738,7 +738,7 @@
             background-color: white;
             transition: 0.4s;
             border-radius: 50%;
-            /* Styling teks di dalam knob */
+            /* Styling teks di dalam ***** */
             text-align: center;
             line-height: 26px;
             font-size: 10px;
@@ -760,29 +760,6 @@
             content: "BUKA"; /* Teks setelah digeser */
             color: #4CAF50;
         }        
-        /* Potongan CSS Tambahan untuk Toping */
-        .topping-input-group {
-            display: flex;
-            gap: 10px; /* Jarak antara nama toping, harga, dan tombol hapus */
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .topping-input-group input[type="text"] {
-            flex-grow: 1; /* Nama Toping akan mengambil sisa ruang */
-        }
-        .topping-input-group input[type="number"] {
-            width: 100px; /* Lebar tetap untuk Harga Toping */
-            flex-shrink: 0;
-            text-align: right;
-        }
-        .topping-input-group .btn-danger {
-            padding: 10px 10px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
         /* ========================================================= */
         /* 6. Mobile Responsiveness - FIX AKHIR */
         /* ========================================================= */
@@ -998,21 +975,13 @@
                 <div class="form-group"><label>Nama Menu:</label><input type="text" id="menuName" required></div>
                 <div class="form-group">
                     <label>Deskripsi Menu:</label>
-                    <textarea id="menuDescription" rows="3" placeholder="Contoh: Ayam goreng renyah dengan sambal pedas, cocok untuk yang suka pedas."></textarea>
+                    <textarea id="menuDescription" rows="3" placeholder="Contoh: Ayam goreng renyah dengan sambal pedas, cocok untuk yang ***** pedas."></textarea>
                 </div>
                 <div class="form-group">
                     <label>Harga (contoh: 10.000):</label>
                     <input type="text" id="menuPriceDisplay" required placeholder="Cth: 10.000">
                     <input type="hidden" id="menuPrice">
                 </div>
-                <div class="form-group">
-                    <label style="margin-bottom: 10px;">Varian/Topping (Opsional):</label>
-                    <div id="toppingsContainer">
-                        </div>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="addToppingField()">
-                        <i class="fas fa-plus"></i> Tambah Varian/Topping 
-                    </button>
-                </div>               
                 <div class="form-group">
                     <label>Kategori Menu (Pilih satu atau lebih):</label>
                     <div id="menuCategoryOptions" class="category-options">
@@ -1904,7 +1873,6 @@
             document.querySelectorAll('.default-image-option').forEach(el => el.style.borderColor = 'transparent');
             
             // >>> Tambahan: Hapus semua field toping sebelumnya <<<
-            document.getElementById('toppingsContainer').innerHTML = ''; 
         
             let currentImage = DEFAULT_MENU_IMAGE;
             
@@ -1925,15 +1893,6 @@
                 document.getElementById('menuPrice').value = m.price; 
                 currentImage = m.image || DEFAULT_MENU_IMAGE;
         
-                // >>> TAMBAHAN: ISI TOPING YANG SUDAH TERSIMPAN <<<
-                if (m.toppings && m.toppings.length > 0) {
-                    m.toppings.forEach(topping => {
-                        addToppingField(topping.name, topping.price); 
-                    });
-                } else {
-                    // Tambahkan 1 field kosong jika belum ada topping
-                    addToppingField();
-                }
         
                 // Image handling (Sama seperti kode Anda)
                 if (DEFAULT_MENU_IMAGES.includes(currentImage)) {
@@ -1956,8 +1915,6 @@
                 document.getElementById('sourceUpload').checked = true;
                 toggleImageSource('upload');
                 
-                // >>> TAMBAHAN: Tambahkan 1 field Toping kosong secara default <<<
-                addToppingField(); 
             }
             
             // Update Preview Gambar
@@ -1971,89 +1928,111 @@
                 renderMenuCategoryOptions([]); 
             }
         };
+        // Otomatis kapital huruf pertama tiap kata di Nama Menu
+        document.getElementById('menuName').addEventListener('input', function(e) {
+            e.target.value = e.target.value
+                .toLowerCase()                // ubah semua huruf ke kecil dulu
+                .replace(/\b\w/g, c => c.toUpperCase()); // lalu kapital tiap huruf awal kata
+        });
+        // Otomatis format angka harga jadi 10.000 dst saat diketik
+        document.getElementById('menuPriceDisplay').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/g, ''); // hanya angka
+            if (value) {
+                e.target.value = formatRupiah(value, ''); // pakai fungsi formatRupiah yang sudah ada
+            } else {
+                e.target.value = '';
+            }
+        });
+
         // =========================================================
         // >>> [GANTI TOTAL] FUNGSI saveMenu YANG SUDAH ADA <<<
         // =========================================================
-        
         window.saveMenu = async () => {
             const id = document.getElementById('menuId').value || MENU_REF.push().key;
             const isNew = !document.getElementById('menuId').value;
             const name = document.getElementById('menuName').value;
-            
-            // >>> TAMBAHAN: Ambil Deskripsi Menu <<<
             const description = document.getElementById('menuDescription').value.trim(); 
-            
-            // Price Handling
             const oldPrice = ALL_MENUS[id]?.price || 0;
             const priceDisplay = document.getElementById('menuPriceDisplay').value;
             const priceHidden = document.getElementById('menuPrice').value;
-            let price; 
-            if (priceDisplay) { 
-                price = parseInt(priceDisplay.replace(/[^0-9]/g, '') || 0); 
-            } else if (priceHidden) { 
-                price = parseInt(priceHidden); 
-            } else { 
-                price = isNew ? 0 : oldPrice;
-            } 
-            
+            let price;
+            if (priceDisplay) {
+                // User mengetik di display: Bersihkan format (Rp, .) dan gunakan nilai baru
+                price = parseInt(priceDisplay.replace(/[^0-9]/g, '') || 0);
+            } else if (priceHidden) {
+                // Display kosong, tapi hidden field terisi: Gunakan hidden field (nilai integer)
+                price = parseInt(priceHidden);
+            } else {
+                price = isNew ? 0 : oldPrice; // <-- AMAN: pakai ALL_MENUS[id].price jika edit
+            }
+
             // Mengambil semua kategori yang dicentang
-            const categories = getSelectedMenuCategories();
-            
-            // >>> TAMBAHAN: Ambil data Toping menggunakan fungsi baru <<<
-            const toppings = getToppingsFromForm();
+            const selectedCategories = Array.from(document.querySelectorAll('#menuCategoryOptions input[type="checkbox"]:checked'))
+                .map(el => el.value);
+                
+            // Mengetahui sumber gambar yang dipilih
+            const imageSource = document.querySelector('input[name="imageSource"]:checked').value;
+            const menuImageFile = document.getElementById('menuImageFile');
         
-            if (!name || !priceDisplay || categories.length === 0) {
-                notify('Mohon isi Nama Menu, Harga, dan minimal satu Kategori.', 'warning');
+            // **VALIDASI INPUT WAJIB**
+            if (!name || price <= 0 || selectedCategories.length === 0) {
+                notify('Nama Menu, Harga, dan minimal satu Kategori tidak boleh kosong!', 'error');
                 return;
             }
+            if (!isNew && price === 0 && oldPrice > 0) {
+                price = oldPrice;
+            }
             
-            // Data menu yang akan disimpan
+            let imageUrl = ALL_MENUS[id]?.image || DEFAULT_MENU_IMAGE;
+            
+            // --- LOGIKA PENANGANAN GAMBAR ---
+            if (imageSource === 'upload') {
+                // Mode Upload Baru
+                if (menuImageFile.croppedFile) {
+                    // Jika sudah di-crop, unggah file tersebut
+                    notify('Mengunggah gambar menu...', 'warning');
+                    // Asumsi 'uploadImageToCloudinary' ada dan mengembalikan URL
+                    imageUrl = await uploadImageToCloudinary(menuImageFile.croppedFile);
+                    if (!imageUrl) return; // Gagal upload
+                } else if (isNew && !ALL_MENUS[id]?.image) {
+                    // Mode Tambah Baru & Tidak Ada Gambar: Wajib ada foto
+                    notify('Foto menu wajib diisi untuk menu baru!', 'error');
+                    return;
+                } 
+            } else if (imageSource === 'default') {
+                // Mode Pilih Foto Dasar
+                imageUrl = document.getElementById('selectedDefaultMenuImage').value;
+                if (!imageUrl) {
+                    notify('Pilih salah satu foto dasar sebelum menyimpan!', 'error');
+                    return;
+                }
+            }
+            
+            // Data yang akan disimpan ke Firebase
             const menuData = {
+                id: id,
+                restaurantId: LOGGED_IN_RESTAURANT_ID,
                 name: name,
                 description: description, // NEW FIELD
                 price: price,
-                category: categories,
-                toppings: toppings, // NEW FIELD
-                image: ALL_MENUS[id]?.image || DEFAULT_MENU_IMAGE, 
-                imageSource: ALL_MENUS[id]?.imageSource || 'upload',
-                // isHidden: ALL_MENUS[id]?.isHidden || false 
+                category: selectedCategories,
+                image: imageUrl,
+                isPublished: ALL_MENUS[id]?.isPublished !== false,
+                updatedAt: new Date().toISOString()
             };
-            
-            // *** Logic Upload Gambar (Tetap) ***
-            const imageFile = document.getElementById('menuImageFile').croppedFile;
-            const imageSource = document.querySelector('input[name="imageSource"]:checked').value;
-            let uploadPromise = Promise.resolve();
-            
-            if (imageSource === 'default') {
-                menuData.image = document.getElementById('selectedDefaultMenuImage').value || DEFAULT_MENU_IMAGE;
-                menuData.imageSource = 'default';
-            } else if (imageFile) {
-                const fileName = `menus/${LOGGED_IN_RESTAURANT_ID}/${id}.jpg`;
-                uploadPromise = storage.ref(fileName).put(imageFile)
-                    .then(snapshot => snapshot.ref.getDownloadURL())
-                    .then(url => {
-                        menuData.image = url;
-                        menuData.imageSource = 'upload';
-                    });
-            } else {
-                menuData.image = ALL_MENUS[id]?.image || DEFAULT_MENU_IMAGE;
-                menuData.imageSource = ALL_MENUS[id]?.imageSource || 'upload';
-            }
         
-            // Simpan ke Firebase (setelah upload gambar selesai)
-            uploadPromise.then(() => {
-                // Koneksi Firebase: Menyimpan data menuData yang sudah diperbarui
-                MENU_REF.child(id).update(menuData)
-                    .then(() => {
-                        notify(`Menu ${name} berhasil di${isNew ? 'tambahkan' : 'perbarui'}!`, 'success');
-                        closeModal('menuModal'); 
-                        document.getElementById('menuImageFile').value = '';
-                        delete document.getElementById('menuImageFile').croppedFile;
-                    })
-                    .catch(error => notify('Gagal menyimpan menu: ' + error.message, 'error'));
-            })
-            .catch(error => notify('Gagal mengunggah gambar: ' + error.message, 'error'));
+            // Simpan ke Firebase Realtime Database
+            MENU_REF.child(id).update(menuData)
+                .then(() => {
+                    notify(`Menu ${name} berhasil di${isNew ? 'tambahkan' : 'perbarui'}!`, 'success');
+                    closeModal('menuModal');
+                    // Reset input file setelah berhasil
+                    document.getElementById('menuImageFile').value = '';
+                    delete document.getElementById('menuImageFile').croppedFile;
+                })
+                .catch(error => notify('Gagal menyimpan menu: ' + error.message, 'error'));
         };
+        
         window.deleteMenu = (id, name) => {
             if (confirm(`Yakin ingin menghapus menu ${name} ini? Tindakan ini tidak dapat dibatalkan!`)) {
                 MENU_REF.child(id).remove()
@@ -2062,60 +2041,6 @@
                     })
                     .catch(error => notify('Gagal menghapus menu: ' + error.message, 'error'));
             }
-        };
-        // =========================================================
-        // >>> TAMBAHAN FUNGSI UNTUK MENGELOLA TOPING <<<
-        // =========================================================
-        
-        // Fungsi untuk menambahkan pasangan input Nama Toping dan Harga Toping
-        window.addToppingField = (name = '', price = 0) => {
-            const container = document.getElementById('toppingsContainer');
-            
-            const group = document.createElement('div');
-            group.className = 'topping-input-group';
-            
-            // Input Nama Toping
-            const nameInput = document.createElement('input');
-            nameInput.type = 'text';
-            nameInput.placeholder = 'Nama Varian/Toping (Cth: Sambal Geprek)';
-            nameInput.value = name;
-            nameInput.className = 'topping-name-input';
-            
-            // Input Harga Toping
-            const priceInput = document.createElement('input');
-            priceInput.type = 'number';
-            priceInput.placeholder = 'Harga (0=Gratis)';
-            priceInput.value = price;
-            priceInput.min = 0;
-            priceInput.className = 'topping-price-input';
-        
-            // Tombol Hapus
-            const deleteButton = document.createElement('button');
-            deleteButton.type = 'button';
-            deleteButton.className = 'btn btn-danger btn-icon';
-            deleteButton.innerHTML = '<i class="fas fa-times"></i>';
-            deleteButton.onclick = () => group.remove();
-        
-            group.appendChild(nameInput);
-            group.appendChild(priceInput);
-            group.appendChild(deleteButton);
-            container.appendChild(group);
-        };
-        
-        const getToppingsFromForm = () => {
-            const toppings = [];
-            document.querySelectorAll('#toppingsContainer .topping-input-group').forEach(group => {
-                const nameInput = group.querySelector('.topping-name-input');
-                const priceInput = group.querySelector('.topping-price-input');
-                
-                if (nameInput.value.trim() !== '') {
-                    toppings.push({
-                        name: nameInput.value.trim(),
-                        price: parseInt(priceInput.value) || 0 // Pastikan harga adalah integer (gratis = 0)
-                    });
-                }
-            });
-            return toppings;
         };
         // **POTONGAN TAMBAHAN: Fungsi Logout**
         window.logout = () => {
