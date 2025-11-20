@@ -841,6 +841,31 @@
               padding: 5px 8px;
           }
         }
+        /* ========================================================= */
+        /* 3.2.1. Styling Diskon Menu Baru */
+        /* ========================================================= */
+        .item-price-container {
+            margin-bottom: 5px;
+            line-height: 1.2;
+            display: flex; /* Untuk menempatkan harga lama dan baru bersebelahan */
+            flex-wrap: wrap; /* Jika harga terlalu panjang */
+            align-items: center;
+        }
+        
+        .item-price-original { 
+            font-size: 10px; 
+            color: var(--text-color-light); 
+            text-decoration: line-through; /* Coret harga asli */
+            margin-right: 5px; 
+            font-weight: 400;
+        }
+        
+        .item-price-discounted {
+            font-weight: 700; 
+            color: #4CAF50; /* Hijau untuk harga diskon */
+            font-size: 14px; 
+            /* display: block; */ /* Dihapus karena menggunakan flex di container */
+        }
     </style>
 </head>
 <body>
@@ -981,6 +1006,11 @@
                     <label>Harga (contoh: 10.000):</label>
                     <input type="text" id="menuPriceDisplay" required placeholder="Cth: 10.000">
                     <input type="hidden" id="menuPrice">
+                </div>
+                <div class="form-group">
+                    <label>Harga Diskon (Opsional, kosongkan jika tidak ada diskon):</label>
+                    <input type="text" id="menuDiscountedPriceDisplay" placeholder="Cth: 8.000">
+                    <input type="hidden" id="menuDiscountedPrice">
                 </div>
                 <div class="form-group">
                     <label>Kategori Menu (Pilih satu atau lebih):</label>
@@ -1824,25 +1854,40 @@
             const filteredMenus = menusArray.filter(m => {
                 return m.name.toLowerCase().includes(searchInput);
             });
-
+        
             if (filteredMenus.length === 0) {
                 container.innerHTML = `<p style="text-align: center; color: #999; grid-column: 1 / -1;">Menu ${searchInput} tidak ada.</p>`;
                 return;
             }
-
+        
             filteredMenus.sort((a, b) => a.name.localeCompare(b.name)).forEach(m => {
                 const limitedCategories = (m.category || []).slice(0, 3);
                 const item = document.createElement('div');
                 item.className = 'grid-item menu-item';
                 const categoriesHTML = (m.category || []).map(cat => `<span class="category-tag">${cat}</span>`).join('');
-                
+        
+                // --- FITUR BARU: LOGIKA TAMPILAN DISKON HARGA ---
+                let priceHTML;
+                // Cek apakah ada diskon yang valid (lebih dari 0 dan lebih kecil dari harga normal)
+                if (m.discountedPrice && m.discountedPrice > 0 && m.discountedPrice < m.price) {
+                    priceHTML = `
+                        <div class="item-price-container">
+                            <p class="item-price-original">${formatRupiah(m.price)}</p>
+                            <p class="item-price-discounted">${formatRupiah(m.discountedPrice)}</p>
+                        </div>
+                    `;
+                } else {
+                    // Tampilkan harga normal
+                    priceHTML = `<p class="item-price">${formatRupiah(m.price)}</p>`;
+                }
+                // ------------------------------------------------
+        
                 item.innerHTML = `
                     <img src="${m.image || DEFAULT_MENU_IMAGE}" alt="${m.name}">
                     <div class="item-content">
                         <div>
                             <h4>${m.name}</h4>
-                            <p class="item-price">${formatRupiah(m.price)}</p>
-                            <div class="item-category">${categoriesHTML}</div>
+                            ${priceHTML} <div class="item-category">${categoriesHTML}</div>
                         </div>
                         <div class="item-actions">
                             <button class="btn btn-sm btn-secondary" onclick="openMenuModal(false, '${m.id}')"><i class="fas fa-edit"></i> Edit</button>
@@ -1865,6 +1910,8 @@
             document.getElementById('menuFormData').reset();
             document.getElementById('menuId').value = id || ''; // Tetapkan ID jika ada
             document.getElementById('menuPrice').value = '';
+            document.getElementById('menuDiscountedPriceDisplay').value = '';
+            document.getElementById('menuDiscountedPrice').value = '';
             document.getElementById('menuImageFile').value = '';
             delete document.getElementById('menuImageFile').croppedFile;
             renderDefaultMenuImages();
@@ -1891,6 +1938,8 @@
                 
                 document.getElementById('menuPriceDisplay').value = formatRupiah(m.price, ''); 
                 document.getElementById('menuPrice').value = m.price; 
+                document.getElementById('menuDiscountedPriceDisplay').value = m.discountedPrice ? formatRupiah(m.discountedPrice, '') : '';
+                document.getElementById('menuDiscountedPrice').value = m.discountedPrice || 0;
                 currentImage = m.image || DEFAULT_MENU_IMAGE;
         
         
@@ -1944,9 +1993,6 @@
             }
         });
 
-        // =========================================================
-        // >>> [GANTI TOTAL] FUNGSI saveMenu YANG SUDAH ADA <<<
-        // =========================================================
         window.saveMenu = async () => {
             const id = document.getElementById('menuId').value || MENU_REF.push().key;
             const isNew = !document.getElementById('menuId').value;
@@ -1965,7 +2011,26 @@
             } else {
                 price = isNew ? 0 : oldPrice; // <-- AMAN: pakai ALL_MENUS[id].price jika edit
             }
-
+        
+            // --- LOGIKA DISKON HARGA BARU ---
+            const discountedPriceDisplay = document.getElementById('menuDiscountedPriceDisplay').value;
+            const discountedPriceHidden = document.getElementById('menuDiscountedPrice').value;
+            let discountedPrice = 0;
+            
+            // Logika pembacaan harga diskon
+            if (discountedPriceDisplay) {
+                discountedPrice = parseInt(discountedPriceDisplay.replace(/[^0-9]/g, '') || 0);
+            } else if (discountedPriceHidden) {
+                discountedPrice = parseInt(discountedPriceHidden);
+            }
+            
+            // Validasi Diskon: Harga diskon tidak boleh lebih besar atau sama dengan harga asli
+            if (discountedPrice > 0 && discountedPrice >= price) {
+                notify('Harga diskon tidak boleh sama atau lebih besar dari Harga Menu asli. Diskon diabaikan.', 'warning');
+                discountedPrice = 0; // Abaikan diskon jika tidak valid
+            }
+            // ---------------------------------
+        
             // Mengambil semua kategori yang dicentang
             const selectedCategories = Array.from(document.querySelectorAll('#menuCategoryOptions input[type="checkbox"]:checked'))
                 .map(el => el.value);
@@ -1973,7 +2038,7 @@
             // Mengetahui sumber gambar yang dipilih
             const imageSource = document.querySelector('input[name="imageSource"]:checked').value;
             const menuImageFile = document.getElementById('menuImageFile');
-        
+            
             // **VALIDASI INPUT WAJIB**
             if (!name || price <= 0 || selectedCategories.length === 0) {
                 notify('Nama Menu, Harga, dan minimal satu Kategori tidak boleh kosong!', 'error');
@@ -1986,21 +2051,17 @@
             let imageUrl = ALL_MENUS[id]?.image || DEFAULT_MENU_IMAGE;
             
             // --- LOGIKA PENANGANAN GAMBAR ---
+            // ... (Logika penanganan gambar tidak berubah)
             if (imageSource === 'upload') {
-                // Mode Upload Baru
                 if (menuImageFile.croppedFile) {
-                    // Jika sudah di-crop, unggah file tersebut
                     notify('Mengunggah gambar menu...', 'warning');
-                    // Asumsi 'uploadImageToCloudinary' ada dan mengembalikan URL
                     imageUrl = await uploadImageToCloudinary(menuImageFile.croppedFile);
-                    if (!imageUrl) return; // Gagal upload
+                    if (!imageUrl) return;
                 } else if (isNew && !ALL_MENUS[id]?.image) {
-                    // Mode Tambah Baru & Tidak Ada Gambar: Wajib ada foto
                     notify('Foto menu wajib diisi untuk menu baru!', 'error');
                     return;
                 } 
             } else if (imageSource === 'default') {
-                // Mode Pilih Foto Dasar
                 imageUrl = document.getElementById('selectedDefaultMenuImage').value;
                 if (!imageUrl) {
                     notify('Pilih salah satu foto dasar sebelum menyimpan!', 'error');
@@ -2015,12 +2076,13 @@
                 name: name,
                 description: description, // NEW FIELD
                 price: price,
+                discountedPrice: discountedPrice, // <-- FIELD DISKON BARU DITAMBAHKAN
                 category: selectedCategories,
                 image: imageUrl,
                 isPublished: ALL_MENUS[id]?.isPublished !== false,
                 updatedAt: new Date().toISOString()
             };
-        
+            
             // Simpan ke Firebase Realtime Database
             MENU_REF.child(id).update(menuData)
                 .then(() => {
@@ -2032,7 +2094,6 @@
                 })
                 .catch(error => notify('Gagal menyimpan menu: ' + error.message, 'error'));
         };
-        
         window.deleteMenu = (id, name) => {
             if (confirm(`Yakin ingin menghapus menu ${name} ini? Tindakan ini tidak dapat dibatalkan!`)) {
                 MENU_REF.child(id).remove()
@@ -2063,6 +2124,16 @@
             // 2. Buka modal baru
             openModal('defaultImageSelectionModal', 'Pilih Foto Menu Dasar'); 
         }
+        // Otomatis format angka harga diskon jadi 10.000 dst saat diketik
+        document.getElementById('menuDiscountedPriceDisplay').addEventListener('input', function(e) { 
+            let value = e.target.value.replace(/[^0-9]/g, ''); // hanya angka
+            document.getElementById('menuDiscountedPrice').value = value; // Simpan nilai angka murni
+            if (value) {
+                e.target.value = formatRupiah(value, ''); // Tampilkan nilai terformat
+            } else {
+                e.target.value = '';
+            }
+        });
 
         // --- INIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
