@@ -866,6 +866,24 @@
             font-size: 14px; 
             /* display: block; */ /* Dihapus karena menggunakan flex di container */
         }
+        /* Styling untuk Indikator Varian */
+        .variant-indicator {
+            /* Positioning untuk pojok kiri atas gambar */
+            position: absolute; /* BARU: Diposisikan mutlak */
+            top: 5px; /* BARU: Jarak dari atas */
+            left: 5px; /* BARU: Jarak dari kiri */
+            z-index: 10; /* BARU: Pastikan badge berada di atas gambar */
+            
+            /* Styling dari Anda */
+            background-color: #f7941d;
+            color: white;
+            font-size: 10px;
+            padding: 3px 7px;
+            border-radius: 50px; /* Bentuk pil/badge */
+            font-weight: 600;
+            line-height: 1; 
+            /* vertical-align dan margin-left dihilangkan karena tidak relevan untuk posisi absolut */
+        }
     </style>
 </head>
 <body>
@@ -1011,6 +1029,12 @@
                     <label>Harga Diskon (Opsional, kosongkan jika tidak ada diskon):</label>
                     <input type="text" id="menuDiscountedPriceDisplay" placeholder="Cth: 8.000">
                     <input type="hidden" id="menuDiscountedPrice">
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Varian/Topping/Rasa (Opsional):</label>
+                    <div id="variantsContainer">
+                        </div>
+                    <button type="button" class="btn btn-secondary" onclick="addVariantInput()">+ Tambah Varian</button>
                 </div>
                 <div class="form-group">
                     <label>Kategori Menu (Pilih satu atau lebih):</label>
@@ -1865,7 +1889,12 @@
                 const item = document.createElement('div');
                 item.className = 'grid-item menu-item';
                 const categoriesHTML = (m.category || []).map(cat => `<span class="category-tag">${cat}</span>`).join('');
-        
+
+                const menuHasVariants = m.variants && m.variants.length > 0;
+                let variantIndicatorHtml = '';
+                if (menuHasVariants) {
+                    variantIndicatorHtml = `<span class="variant-indicator"><i class="fas fa-layer-group"></i> VARIAN</span>`; 
+                }
                 // --- FITUR BARU: LOGIKA TAMPILAN DISKON HARGA ---
                 let priceHTML;
                 // Cek apakah ada diskon yang valid (lebih dari 0 dan lebih kecil dari harga normal)
@@ -1886,7 +1915,7 @@
                     <img src="${m.image || DEFAULT_MENU_IMAGE}" alt="${m.name}">
                     <div class="item-content">
                         <div>
-                            <h4>${m.name}</h4>
+                            <h4>${m.name}</h4>${variantIndicatorHtml}</h4>
                             ${priceHTML} <div class="item-category">${categoriesHTML}</div>
                         </div>
                         <div class="item-actions">
@@ -1918,6 +1947,8 @@
             document.getElementById('selectedDefaultMenuImage').value = '';
             document.getElementById('sourceUpload').checked = true;
             document.querySelectorAll('.default-image-option').forEach(el => el.style.borderColor = 'transparent');
+            document.getElementById('variantsContainer').innerHTML = ''; // <-- BARU: Hapus semua input varian lama
+            variantInputCounter = 0; // <-- BARU: Reset counter varian
             
             // >>> Tambahan: Hapus semua field toping sebelumnya <<<
         
@@ -1941,7 +1972,13 @@
                 document.getElementById('menuDiscountedPriceDisplay').value = m.discountedPrice ? formatRupiah(m.discountedPrice, '') : '';
                 document.getElementById('menuDiscountedPrice').value = m.discountedPrice || 0;
                 currentImage = m.image || DEFAULT_MENU_IMAGE;
-        
+                
+                if (m.variants && Array.isArray(m.variants)) {
+                    m.variants.forEach(v => {
+                        const price = Number(v.price) || 0;
+                        addVariantInput(v.name, price); // Panggil fungsi yang dibuat di Step 1.2 sebelumnya
+                    });
+                }                
         
                 // Image handling (Sama seperti kode Anda)
                 if (DEFAULT_MENU_IMAGES.includes(currentImage)) {
@@ -2047,6 +2084,35 @@
             if (!isNew && price === 0 && oldPrice > 0) {
                 price = oldPrice;
             }
+// >>> BARU: 1. Kumpulkan Data Varian/Topping <<<
+            const variantInputs = document.querySelectorAll('#variantsContainer .variant-input-group');
+            const variants = [];
+            let isValidVariants = true;
+
+            variantInputs.forEach(group => {
+                const nameInput = group.querySelector('.variant-name');
+                const priceInput = group.querySelector('.variant-price-value');
+
+                const name = nameInput.value.trim();
+                const price = Number(priceInput.value) || 0;
+
+                // Validasi: Nama varian tidak boleh kosong
+                if (name === '') {
+                    nameInput.focus();
+                    notify('Nama varian/topping tidak boleh kosong!', 'error');
+                    isValidVariants = false;
+                    return;
+                }
+
+                variants.push({
+                    name: name,
+                    price: price,
+                });
+            });
+
+            if (!isValidVariants) {
+                return; // Hentikan penyimpanan jika ada varian yang tidak valid
+            }
             
             let imageUrl = ALL_MENUS[id]?.image || DEFAULT_MENU_IMAGE;
             
@@ -2079,6 +2145,7 @@
                 discountedPrice: discountedPrice, // <-- FIELD DISKON BARU DITAMBAHKAN
                 category: selectedCategories,
                 image: imageUrl,
+                variants: variants.length > 0 ? variants : null, // <-- BARU: Simpan array varian
                 isPublished: ALL_MENUS[id]?.isPublished !== false,
                 updatedAt: new Date().toISOString()
             };
@@ -2115,6 +2182,77 @@
                 document.getElementById('loginUsername').value = '';
                 document.getElementById('loginPassword').value = '';
                 notify('Anda berhasil Logout!', 'warning');
+            }
+        };
+        let variantInputCounter = 0;
+        
+        /**
+         * Menambahkan baris input baru untuk Varian/Topping.
+         */
+        window.addVariantInput = (variantName = '', variantPrice = 0) => {
+            const container = document.getElementById('variantsContainer');
+            const index = variantInputCounter++;
+        
+            const variantDiv = document.createElement('div');
+            variantDiv.className = 'variant-input-group';
+            variantDiv.id = `variantGroup-${index}`;
+            variantDiv.style.display = 'flex';
+            variantDiv.style.gap = '10px';
+            variantDiv.style.marginBottom = '5px';
+        
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'form-control variant-name';
+            nameInput.placeholder = 'Nama Varian (Cokelat, Large, dll)';
+            nameInput.value = variantName;
+            nameInput.required = true;
+        
+            const priceDisplayInput = document.createElement('input');
+            priceDisplayInput.type = 'text';
+            priceDisplayInput.className = 'form-control variant-price-display';
+            priceDisplayInput.placeholder = 'Harga Tambahan (0 jika gratis)';
+            priceDisplayInput.style.width = '120px';
+        
+            const priceInput = document.createElement('input');
+            priceInput.type = 'hidden';
+            priceInput.className = 'variant-price-value';
+            priceInput.value = variantPrice;
+        
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'btn btn-danger';
+            removeButton.style.width = '30px';
+            removeButton.innerHTML = '<i class="fas fa-trash"></i>';
+            removeButton.onclick = () => removeVariantInput(`variantGroup-${index}`);
+        
+            // Handler untuk format harga saat diketik
+            priceDisplayInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/[^0-9]/g, '');
+                priceInput.value = value;
+                if (value) {
+                    e.target.value = formatRupiah(value, '');
+                } else {
+                    e.target.value = '';
+                }
+            });
+            
+            // Inisialisasi format saat load
+            if (variantPrice > 0) {
+                 priceDisplayInput.value = formatRupiah(variantPrice, '');
+            }
+        
+            variantDiv.appendChild(nameInput);
+            variantDiv.appendChild(priceDisplayInput);
+            variantDiv.appendChild(priceInput);
+            variantDiv.appendChild(removeButton);
+        
+            container.appendChild(variantDiv);
+        };
+        
+        window.removeVariantInput = (id) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.remove();
             }
         };
         window.openDefaultImageModal = () => {
